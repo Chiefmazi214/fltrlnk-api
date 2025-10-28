@@ -13,9 +13,9 @@ async function bootstrap() {
       allowedHeaders: 'Content-Type,Accept,Authorization',
     },
   });
-  
+
   app.useWebSocketAdapter(new IoAdapter(app));
-  
+
   const config = new DocumentBuilder()
     .setTitle('FTRL API')
     .setDescription('FTRL API documentation')
