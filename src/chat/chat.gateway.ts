@@ -6,7 +6,7 @@ import { WsException } from '@nestjs/websockets';
 import { WsAuthGuard } from 'src/auth/guards/ws-auth.guard';
 import { WsAuthMiddleware } from 'src/auth/middleware/ws-auth.middleware';
 
-@WebSocketGateway(parseInt(process.env.CHAT_SERVER_PORT || '3001'), {
+@WebSocketGateway({
     cors: {
       origin: '*',
       methods: ['GET', 'POST'],
@@ -19,7 +19,7 @@ import { WsAuthMiddleware } from 'src/auth/middleware/ws-auth.middleware';
     pingTimeout: 60000,
     pingInterval: 25000,
     connectTimeout: 45000,
-    path: '/socket.io',
+    path: '/socket.io/',
     serveClient: false,
     adapter: null,
     allowUpgrades: true,
