@@ -1,0 +1,14 @@
+{
+  "totalRecords": 101,
+  "validRecords": 101,
+  "invalidRecords": 0,
+  "categories": {
+    "FOOD & BEVERAGE": 101
+  },
+  "enrichmentStatus": {
+    "failed_no_text_or_error_page": 10,
+    "completed": 91
+  },
+  "missingFields": {},
+  "errors": []
+}

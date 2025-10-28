@@ -1,0 +1,1517 @@
+[
+  {
+    "success": true,
+    "userId": "67ed26e91f0b5b94b5d60097",
+    "username": "no-username",
+    "email": "tedh@gmail.com",
+    "newLocation": {
+      "longitude": 29.968299755282406,
+      "latitude": 40.75667521062344
+    }
+  },
+  {
+    "success": true,
+    "userId": "67ed28361f0b5b94b5d600a2",
+    "username": "testsetestsetste",
+    "email": "tehhdh@gmail.com",
+    "newLocation": {
+      "longitude": 29.944263249503727,
+      "latitude": 40.80840244173467
+    }
+  },
+  {
+    "success": true,
+    "userId": "67ed28c41f0b5b94b5d600af",
+    "username": "no-username",
+    "email": "tehhjdh@gmail.com",
+    "newLocation": {
+      "longitude": 29.942665566565367,
+      "latitude": 40.7614561457487
+    }
+  },
+  {
+    "success": true,
+    "userId": "67ed28d51f0b5b94b5d600b7",
+    "username": "no-username",
+    "email": "no-email",
+    "newLocation": {
+      "longitude": 29.928583958023292,
+      "latitude": 40.746369098734
+    }
+  },
+  {
+    "success": true,
+    "userId": "67ed60fd4bbeada0fb519a1a",
+    "username": "no-username",
+    "email": "no-email",
+    "newLocation": {
+      "longitude": 29.934095763987298,
+      "latitude": 40.775239931829695
+    }
+  },
+  {
+    "success": true,
+    "userId": "67ed8403289838a3bd3f418f",
+    "username": "johndoe123",
+    "email": "rifatkasikci@gmail.com",
+    "oldLocation": {
+      "longitude": -74.006,
+      "latitude": 40.7128
+    },
+    "newLocation": {
+      "longitude": 29.94151484857756,
+      "latitude": 40.76456919615915
+    }
+  },
+  {
+    "success": true,
+    "userId": "68002c5f31534c8102b95e26",
+    "username": "no-username",
+    "email": "yagcimurat695@gmail.com",
+    "newLocation": {
+      "longitude": 29.94061227795427,
+      "latitude": 40.76546157586334
+    }
+  },
+  {
+    "success": true,
+    "userId": "68002d6c31534c8102b95e2b",
+    "username": "gorkemyagci",
+    "email": "no-email",
+    "oldLocation": {},
+    "newLocation": {
+      "longitude": 29.924338240531945,
+      "latitude": 40.783370940832356
+    }
+  },
+  {
+    "success": true,
+    "userId": "680543c74982af364b2df750",
+    "username": "no-username",
+    "email": "kasikcirifat@gmail.com",
+    "newLocation": {
+      "longitude": 29.937846077161723,
+      "latitude": 40.76653607197234
+    }
+  },
+  {
+    "success": true,
+    "userId": "681cd99694447b0898d2f0f5",
+    "username": "gorkemyagciadams",
+    "email": "gorkemyagci705@gmail.com",
+    "oldLocation": {
+      "longitude": 27.369954,
+      "latitude": 37.950845
+    },
+    "newLocation": {
+      "longitude": 29.975537773254658,
+      "latitude": 40.752705042226154
+    }
+  },
+  {
+    "success": true,
+    "userId": "684bf2aa404721637e45dfff",
+    "username": "no-username",
+    "email": "myuser@gmail.com",
+    "newLocation": {
+      "longitude": 29.94060542648316,
+      "latitude": 40.76576000224899
+    }
+  },
+  {
+    "success": true,
+    "userId": "684bf52a404721637e45e021",
+    "username": "no-username",
+    "email": "userrtest@gmail.com",
+    "newLocation": {
+      "longitude": 29.945190394635304,
+      "latitude": 40.75532141924461
+    }
+  },
+  {
+    "success": true,
+    "userId": "684bf799b2244069f97885ea",
+    "username": "gorkemyag0",
+    "email": "userrtest1@gmail.com",
+    "oldLocation": {},
+    "newLocation": {
+      "longitude": 29.949610843420025,
+      "latitude": 40.73225800432949
+    }
+  },
+  {
+    "success": true,
+    "userId": "684ebb85c4046551a790d0cb",
+    "username": "gorkemyag0",
+    "email": "testim@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.9136110836843,
+      "latitude": 40.772334126683575
+    }
+  },
+  {
+    "success": true,
+    "userId": "684ebf1dc4046551a790d136",
+    "username": "gorkem",
+    "email": "jshdksms@gmail.com",
+    "oldLocation": {},
+    "newLocation": {
+      "longitude": 29.910556307509562,
+      "latitude": 40.79848443497334
+    }
+  },
+  {
+    "success": true,
+    "userId": "684ebfa2c4046551a790d15a",
+    "username": "Kazmmz",
+    "email": "jsjsjsjsj@gmail.com",
+    "oldLocation": {},
+    "newLocation": {
+      "longitude": 29.904409825301432,
+      "latitude": 40.781359162752736
+    }
+  },
+  {
+    "success": true,
+    "userId": "684ec0bf3c2f4e3406748675",
+    "username": "Jshsjsjjsjsjz",
+    "email": "nsjsmdkskz@gmail.com",
+    "oldLocation": {},
+    "newLocation": {
+      "longitude": 29.96260903475331,
+      "latitude": 40.7486733945746
+    }
+  },
+  {
+    "success": true,
+    "userId": "684fc31f3aa99ea57ba1d6d2",
+    "username": "gorkemisadami",
+    "email": "ishesabi@gmail.com",
+    "oldLocation": {},
+    "newLocation": {
+      "longitude": 29.94567712221091,
+      "latitude": 40.77490831062106
+    }
+  },
+  {
+    "success": true,
+    "userId": "685a70f882dc168dad4b63e0",
+    "username": "Yuu",
+    "email": "yuuu@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.90386162100342,
+      "latitude": 40.777722989829
+    }
+  },
+  {
+    "success": true,
+    "userId": "685cf03579a682fc198f7271",
+    "username": "johndoe123",
+    "email": "rifatkasikci2@gmail.com",
+    "oldLocation": {
+      "longitude": -74.006,
+      "latitude": 40.7128
+    },
+    "newLocation": {
+      "longitude": 29.921651776577633,
+      "latitude": 40.77460436107653
+    }
+  },
+  {
+    "success": true,
+    "userId": "685d769ea1f6c052fd77397a",
+    "username": "Test123",
+    "email": "testuser12@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.938190134655837,
+      "latitude": 40.77775315139002
+    }
+  },
+  {
+    "success": true,
+    "userId": "685d7e36fb042e08b9c70e8e",
+    "username": "normalkullanici",
+    "email": "normalkullanici@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.94622747026501,
+      "latitude": 40.723785874180884
+    }
+  },
+  {
+    "success": true,
+    "userId": "685ffd265499117a2bb8ed2c",
+    "username": "testsell",
+    "email": "testsel@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.95144832632355,
+      "latitude": 40.74363524296294
+    }
+  },
+  {
+    "success": true,
+    "userId": "685ffebb5499117a2bb8edd1",
+    "username": "Jsjslks",
+    "email": "sjsjsjjsh@gmail.com",
+    "oldLocation": {
+      "longitude": 27.174709,
+      "latitude": 38.3854789
+    },
+    "newLocation": {
+      "longitude": 29.972519098148933,
+      "latitude": 40.77798313319313
+    }
+  },
+  {
+    "success": true,
+    "userId": "686001135499117a2bb8ee86",
+    "username": "gorkemyag",
+    "email": "hsmsmdnsmm@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.916749951242572,
+      "latitude": 40.76206768835395
+    }
+  },
+  {
+    "success": true,
+    "userId": "68613ceed0d8579b3a01491f",
+    "username": "pilavcim",
+    "email": "pilavcim@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.940815752974483,
+      "latitude": 40.76558449165462
+    }
+  },
+  {
+    "success": true,
+    "userId": "68616ee7cfa6d06acfc15c82",
+    "username": "Naneci",
+    "email": "naneci@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.95650623260753,
+      "latitude": 40.765081969199
+    }
+  },
+  {
+    "success": true,
+    "userId": "686d96a3eef7ede9bab4e1ad",
+    "username": "Msnxmzmxmz",
+    "email": "gorkemnsnsyagci705@gmail.com",
+    "oldLocation": {
+      "longitude": 27.369954,
+      "latitude": 37.950845
+    },
+    "newLocation": {
+      "longitude": 29.928054825507285,
+      "latitude": 40.73706030929033
+    }
+  },
+  {
+    "success": true,
+    "userId": "686eae35590fba6d635ad7a1",
+    "username": "testaccount",
+    "email": "testemail@gmail.com",
+    "oldLocation": {
+      "longitude": -74.0059728,
+      "latitude": 40.7127753
+    },
+    "newLocation": {
+      "longitude": 29.92960333962782,
+      "latitude": 40.788057824567346
+    }
+  },
+  {
+    "success": true,
+    "userId": "686eb01a590fba6d635ada09",
+    "username": "Testaccount",
+    "email": "testaccount123@gmail.com",
+    "oldLocation": {
+      "longitude": 26.3027607,
+      "latitude": 38.3228017
+    },
+    "newLocation": {
+      "longitude": 29.933884680595064,
+      "latitude": 40.78281712328785
+    }
+  },
+  {
+    "success": true,
+    "userId": "688527befa52d251c3b7a1e4",
+    "username": "gorkeeem",
+    "email": "gorkeeem@gmail.com",
+    "oldLocation": {
+      "longitude": 29.9408089,
+      "latitude": 40.7654408
+    },
+    "newLocation": {
+      "longitude": 29.919764461441584,
+      "latitude": 40.771023587993845
+    }
+  },
+  {
+    "success": true,
+    "userId": "68871d2b213a2571b9db54ed",
+    "username": "Ali",
+    "email": "Qasim.muhammadyousaf@gmail.com",
+    "oldLocation": {
+      "longitude": 28.9783589,
+      "latitude": 41.0082376
+    },
+    "newLocation": {
+      "longitude": 29.936403392172057,
+      "latitude": 40.750005348574184
+    }
+  },
+  {
+    "success": true,
+    "userId": "68892679107ed4d933dad142",
+    "username": "Ali1",
+    "email": "ali@gmail.com",
+    "oldLocation": {
+      "longitude": 29.9408089,
+      "latitude": 40.7654408
+    },
+    "newLocation": {
+      "longitude": 29.939649721403033,
+      "latitude": 40.762593283111606
+    }
+  },
+  {
+    "success": true,
+    "userId": "688939d5107ed4d933dad99b",
+    "username": "Qasim",
+    "email": "Qasim@gmail.com",
+    "oldLocation": {
+      "longitude": 29.9408089,
+      "latitude": 40.7654408
+    },
+    "newLocation": {
+      "longitude": 29.932470656038664,
+      "latitude": 40.76376482797755
+    }
+  },
+  {
+    "success": true,
+    "userId": "6889406c107ed4d933dadca4",
+    "username": "Aliee",
+    "email": "ali+1@gmail.com",
+    "oldLocation": {
+      "longitude": 29.9408089,
+      "latitude": 40.7654408
+    },
+    "newLocation": {
+      "longitude": 29.972371724990442,
+      "latitude": 40.78594710551197
+    }
+  },
+  {
+    "success": true,
+    "userId": "688b0b1bcd93f9167f1116d7",
+    "username": "Ali23456",
+    "email": "ali+2@gmail.com",
+    "oldLocation": {
+      "longitude": 29.9408089,
+      "latitude": 40.7654408
+    },
+    "newLocation": {
+      "longitude": 29.962552967954935,
+      "latitude": 40.77555966945415
+    }
+  },
+  {
+    "success": true,
+    "userId": "688c65bcf3c873a270e64bbb",
+    "username": "no-username",
+    "email": "Qasim+1@gmail.com",
+    "oldLocation": {
+      "longitude": 29.9408089,
+      "latitude": 40.7654408
+    },
+    "newLocation": {
+      "longitude": 29.9163391294756,
+      "latitude": 40.74126360187387
+    }
+  },
+  {
+    "success": true,
+    "userId": "688c7194f3c873a270e64c19",
+    "username": "Qasim4",
+    "email": "Qasim+4@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.964109411322713,
+      "latitude": 40.777332504562274
+    }
+  },
+  {
+    "success": true,
+    "userId": "688d1c048198ed5b87b1f0df",
+    "username": "Ali_B",
+    "email": "ali+4@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.979255541116085,
+      "latitude": 40.781602513617415
+    }
+  },
+  {
+    "success": true,
+    "userId": "688dad578198ed5b87b1f44e",
+    "username": "Abli_B_5",
+    "email": "Ali+5@gmail.com",
+    "oldLocation": {
+      "longitude": 29.9408089,
+      "latitude": 40.7654408
+    },
+    "newLocation": {
+      "longitude": 29.951256611809306,
+      "latitude": 40.77990636771587
+    }
+  },
+  {
+    "success": true,
+    "userId": "688dfd473b87734bba712a01",
+    "username": "Qasim5_B",
+    "email": "Qasim+5@gmail.com",
+    "oldLocation": {
+      "longitude": 28.9783589,
+      "latitude": 41.0082376
+    },
+    "newLocation": {
+      "longitude": 29.940886726292508,
+      "latitude": 40.77344406194284
+    }
+  },
+  {
+    "success": true,
+    "userId": "688e38613b87734bba712cfc",
+    "username": "Qasim_b_6",
+    "email": "Qasim+6@gmail.com",
+    "oldLocation": {
+      "longitude": 29.9408089,
+      "latitude": 40.7654408
+    },
+    "newLocation": {
+      "longitude": 29.932475596301305,
+      "latitude": 40.79099386606917
+    }
+  },
+  {
+    "success": true,
+    "userId": "68906ec99336e8d76be86761",
+    "username": "Qasim_Individual",
+    "email": "Qasim+7@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.95543797372173,
+      "latitude": 40.77220856921396
+    }
+  },
+  {
+    "success": true,
+    "userId": "6890f10241a0f72f0aeee8a6",
+    "username": "Qasim_B",
+    "email": "Qasim+8@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.928622685555364,
+      "latitude": 40.778996904215056
+    }
+  },
+  {
+    "success": true,
+    "userId": "6891013041a0f72f0aeee94d",
+    "username": "Qasim_in_2",
+    "email": "Qasim+9@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.92704543412964,
+      "latitude": 40.79347941750189
+    }
+  },
+  {
+    "success": true,
+    "userId": "6891077bbebe7af0824cd429",
+    "username": "Qasim_in_10",
+    "email": "Qasim+10@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.955643201185314,
+      "latitude": 40.73212593040406
+    }
+  },
+  {
+    "success": false,
+    "userId": "68910a63bebe7af0824cd474",
+    "username": "Qasim_in_11",
+    "email": "Qasim+11@gmail.com",
+    "newLocation": {
+      "longitude": 0,
+      "latitude": 0
+    },
+    "error": "Source user - skipped"
+  },
+  {
+    "success": true,
+    "userId": "6891a4ebed500f403141a58d",
+    "username": "Qasim_BB_12",
+    "email": "Qasim+12@gmail.com",
+    "oldLocation": {
+      "longitude": 27.142826,
+      "latitude": 38.423734
+    },
+    "newLocation": {
+      "longitude": 29.928112795161304,
+      "latitude": 40.806210363582736
+    }
+  },
+  {
+    "success": true,
+    "userId": "68a410515c5d058c24188fb5",
+    "username": "Ali_11_B2",
+    "email": "Ali+11@gmail.com",
+    "newLocation": {
+      "longitude": 29.927730695764172,
+      "latitude": 40.76611860544562
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b6b",
+    "username": "brewer_union_cafe_1",
+    "email": "brewerunioncafe@gmail.com",
+    "newLocation": {
+      "longitude": 29.949579155039597,
+      "latitude": 40.75449463738286
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b6d",
+    "username": "canal_view_cafe_2",
+    "email": "canalview@msn.com",
+    "newLocation": {
+      "longitude": 29.919223688464005,
+      "latitude": 40.793565618982875
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b6f",
+    "username": "the_farmhouse_at_ver_3",
+    "email": "info@TheFarmhouseAtVB.com",
+    "newLocation": {
+      "longitude": 29.938547629010635,
+      "latitude": 40.77006878579025
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b73",
+    "username": "legacy_grill_at_mcco_5",
+    "email": "info@mysite.com",
+    "newLocation": {
+      "longitude": 29.98100299392652,
+      "latitude": 40.78450171389584
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b71",
+    "username": "crazy_clam_4",
+    "email": "srosenburgh@rnymedia.com",
+    "newLocation": {
+      "longitude": 29.952683281316027,
+      "latitude": 40.74628153023091
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b75",
+    "username": "mitsuba_8",
+    "email": "mitsubasushi@gmail.com",
+    "newLocation": {
+      "longitude": 29.919246034905377,
+      "latitude": 40.74974256210329
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b77",
+    "username": "moes_southwest_grill_9",
+    "email": "moescatering@rambilasgroup.com",
+    "newLocation": {
+      "longitude": 29.905171909910127,
+      "latitude": 40.783281413596164
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b79",
+    "username": "vine_fig_10",
+    "email": "info@vineandfigwinebistro.com",
+    "newLocation": {
+      "longitude": 29.93083056940217,
+      "latitude": 40.77290880995847
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b7b",
+    "username": "delta_lake_inn_11",
+    "email": "advertising@deltalakeinn.com",
+    "newLocation": {
+      "longitude": 29.93361948018397,
+      "latitude": 40.79161071844586
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b7d",
+    "username": "sport_island_pub_res_12",
+    "email": "info@lanzifamilyrestaurants.com",
+    "newLocation": {
+      "longitude": 29.934794074727773,
+      "latitude": 40.74396299704856
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b7f",
+    "username": "timeless_tavern_13",
+    "email": "timeless@frontiernet.net",
+    "newLocation": {
+      "longitude": 29.938294331833266,
+      "latitude": 40.77437285651788
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b81",
+    "username": "inn_at_the_bridge_14",
+    "email": "Northvillebookings@gmail.com",
+    "newLocation": {
+      "longitude": 29.91706804468683,
+      "latitude": 40.75161330960981
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b83",
+    "username": "restobar_at_adironda_17",
+    "email": "ilovewine@adirondackwinery.com",
+    "newLocation": {
+      "longitude": 29.94660059277719,
+      "latitude": 40.766676302435926
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd02c838293de485b85",
+    "username": "empire_pizza_corinth_15",
+    "email": "info@allhungry.com",
+    "newLocation": {
+      "longitude": 29.93955456354247,
+      "latitude": 40.7582244096186
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b87",
+    "username": "big_tonys_at_the_lak_18",
+    "email": "Bigtonysmealprep@gmail.com",
+    "newLocation": {
+      "longitude": 29.934053073174372,
+      "latitude": 40.767353241132156
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b89",
+    "username": "gourmet_cafe_20",
+    "email": "dine@downtowngourmet.com",
+    "newLocation": {
+      "longitude": 29.921289295007682,
+      "latitude": 40.732162543247775
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b8b",
+    "username": "fenimores_pub_21",
+    "email": "info@thequeensburyhotel.com",
+    "newLocation": {
+      "longitude": 29.937358732231395,
+      "latitude": 40.764181170652776
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b8d",
+    "username": "chez_pierre_19",
+    "email": "chezpierre_12831@yahoo.com",
+    "newLocation": {
+      "longitude": 29.94005441551187,
+      "latitude": 40.763131589293515
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b8f",
+    "username": "lucys_roadhouse_22",
+    "email": "fortmoore@lucysroadhouse.com",
+    "newLocation": {
+      "longitude": 29.943481456768794,
+      "latitude": 40.73206206652347
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b95",
+    "username": "river_city_soul_25",
+    "email": "info@rivercitysouldal.com",
+    "newLocation": {
+      "longitude": 29.94088545278184,
+      "latitude": 40.76539368363485
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b93",
+    "username": "vallarta_mexican_res_24",
+    "email": "vallarta96@gmail.com",
+    "newLocation": {
+      "longitude": 29.95497753037027,
+      "latitude": 40.76642922290977
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b97",
+    "username": "huddle_house_26",
+    "email": "mediainquiries@huddlehouse.com",
+    "newLocation": {
+      "longitude": 29.926223466383764,
+      "latitude": 40.74855900469622
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b99",
+    "username": "los_toreros_mexican__27",
+    "email": "mexicanfoodtruck@torerosprattville.com",
+    "newLocation": {
+      "longitude": 29.944342486810378,
+      "latitude": 40.7434615612734
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b9d",
+    "username": "the_coosa_cleaver_29",
+    "email": "TheCoosaCleaver@gmail.com",
+    "newLocation": {
+      "longitude": 29.9242363547045,
+      "latitude": 40.77619216376847
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b9f",
+    "username": "coaches_corner_sport_30",
+    "email": "Info@coachescornersportsbarandgrill.com",
+    "newLocation": {
+      "longitude": 29.924945804460098,
+      "latitude": 40.771277859269475
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485ba1",
+    "username": "headys_32",
+    "email": "HeadyScoops@gmail.com",
+    "newLocation": {
+      "longitude": 29.913701514172267,
+      "latitude": 40.7557730249443
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485ba3",
+    "username": "barberitos_33",
+    "email": "wetumpka@barberitos.com",
+    "newLocation": {
+      "longitude": 29.914392262744908,
+      "latitude": 40.765264462082
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485ba5",
+    "username": "sugarbeets_6",
+    "email": "Owners@Sugarbeets417.com",
+    "newLocation": {
+      "longitude": 29.941771919326467,
+      "latitude": 40.77027964978618
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485ba7",
+    "username": "cozumel_mexican_gril_35",
+    "email": "CozumelMexicanGrill@yahoo.com",
+    "newLocation": {
+      "longitude": 29.9701245196759,
+      "latitude": 40.75439992321256
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485ba9",
+    "username": "fire_sign_caf_37",
+    "email": "contact@firesigncafe.com",
+    "newLocation": {
+      "longitude": 29.949960273497222,
+      "latitude": 40.72580910844801
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485bab",
+    "username": "sunnyside_restaurant_38",
+    "email": "lodgedesk@sunnysidelodge.com",
+    "newLocation": {
+      "longitude": 29.93820703784511,
+      "latitude": 40.80603959157845
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485bad",
+    "username": "el_jarocho_mexican_r_7",
+    "email": "el-jarocho.shop@gmail.com",
+    "newLocation": {
+      "longitude": 29.956645208500724,
+      "latitude": 40.754508854613746
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485baf",
+    "username": "shadyside_lounge_39",
+    "email": "contact@tahoeshadyside.com",
+    "newLocation": {
+      "longitude": 29.89729710163516,
+      "latitude": 40.75666751987647
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485bb1",
+    "username": "west_shore_market_40",
+    "email": "contact@westshoremarket.com",
+    "newLocation": {
+      "longitude": 29.93969808004922,
+      "latitude": 40.74133733582724
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485bb3",
+    "username": "the_dog_bear_tavern_41",
+    "email": "hello@thedogandbear.com",
+    "newLocation": {
+      "longitude": 29.955446052110624,
+      "latitude": 40.75394857832228
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd22c838293de485bb5",
+    "username": "chambers_landing_bar_42",
+    "email": "info@chamberstahoe.com",
+    "newLocation": {
+      "longitude": 29.946954567950893,
+      "latitude": 40.759609275174604
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd22c838293de485bb7",
+    "username": "bamboo_garden_43",
+    "email": "black9@qq.com",
+    "newLocation": {
+      "longitude": 29.922589531338236,
+      "latitude": 40.783352665373975
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd22c838293de485bb9",
+    "username": "ledford_house_44",
+    "email": "ledford@mcn.org",
+    "newLocation": {
+      "longitude": 29.940370030796227,
+      "latitude": 40.76604974398778
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd22c838293de485bbd",
+    "username": "terra_mar_kitchen_45",
+    "email": "info.mcl@scphotel.com",
+    "newLocation": {
+      "longitude": 29.97145088403526,
+      "latitude": 40.751604359107375
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd22c838293de485bbf",
+    "username": "maritime_cafe_47",
+    "email": "rodney@maritimecafeelk.com",
+    "newLocation": {
+      "longitude": 29.952671616471466,
+      "latitude": 40.770995451061026
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd22c838293de485bc1",
+    "username": "sibo_restaurant_elk__48",
+    "email": "info@elkcoveinn.com",
+    "newLocation": {
+      "longitude": 29.93874813376094,
+      "latitude": 40.798130568738046
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd22c838293de485bc3",
+    "username": "stars_restaurant_49",
+    "email": "stars115@gmail.com",
+    "newLocation": {
+      "longitude": 29.906036180655683,
+      "latitude": 40.75596972939623
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b91",
+    "username": "madame_diner_and_lou_23",
+    "email": "Madamediner@gmail.com",
+    "newLocation": {
+      "longitude": 29.940396401276775,
+      "latitude": 40.75938135560948
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd32c838293de485d38",
+    "username": "il_pizzaiolo_woodfir_36",
+    "email": "info@ilpizzaiololoomis.com",
+    "newLocation": {
+      "longitude": 29.9097664955819,
+      "latitude": 40.74574048331654
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd12c838293de485b9b",
+    "username": "smokehouse_pit_bbq_28",
+    "email": "manager@SmokehousePitBBQ.com",
+    "newLocation": {
+      "longitude": 29.901871916547,
+      "latitude": 40.74922527885281
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ec8",
+    "username": "left_coast_seafood_m_50",
+    "email": "info@leftcoastseafood.com",
+    "newLocation": {
+      "longitude": 29.943850097682663,
+      "latitude": 40.74966730541323
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485eca",
+    "username": "aztec_grill_51",
+    "email": "info@redwoodoil.net",
+    "newLocation": {
+      "longitude": 29.941203945253967,
+      "latitude": 40.78838767341683
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ecc",
+    "username": "bebops_diner_53",
+    "email": "bebopsdiner@gmail.com",
+    "newLocation": {
+      "longitude": 29.94122872027753,
+      "latitude": 40.74232624623177
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ece",
+    "username": "slough_house_social_60",
+    "email": "sloughhousesocial@gmail.com",
+    "newLocation": {
+      "longitude": 29.975404148329947,
+      "latitude": 40.75470931461955
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ed0",
+    "username": "pilon_kitchen_55",
+    "email": "pilonkitchen@gmail.com",
+    "newLocation": {
+      "longitude": 29.92349985043273,
+      "latitude": 40.7833815675172
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ed2",
+    "username": "kikis_chicken_place__59",
+    "email": "kikischickenplaceofficial@gmail.com",
+    "newLocation": {
+      "longitude": 29.94302870479094,
+      "latitude": 40.767084026074805
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ed4",
+    "username": "orvs_farm_market_56",
+    "email": "orvsgifts@gmail.com",
+    "newLocation": {
+      "longitude": 29.93402567674784,
+      "latitude": 40.772582935688874
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ed6",
+    "username": "delicias_robertas_57",
+    "email": "deliciasrobertas.shop@gmail.com",
+    "newLocation": {
+      "longitude": 29.96301159478156,
+      "latitude": 40.764964384348666
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ed8",
+    "username": "dancing_tomato_caff_61",
+    "email": "info@dancingtomato.com",
+    "newLocation": {
+      "longitude": 29.93242501616031,
+      "latitude": 40.74048892667903
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485eda",
+    "username": "jeffs_freezette_58",
+    "email": "jeffsfreezette.shop@gmail.com",
+    "newLocation": {
+      "longitude": 29.9416243717603,
+      "latitude": 40.76866081094386
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485edc",
+    "username": "city_caf_taproom_64",
+    "email": "info@citycafeys.com",
+    "newLocation": {
+      "longitude": 29.948823434469205,
+      "latitude": 40.76510072387593
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ede",
+    "username": "casa_lupe_restaurant_63",
+    "email": "hello@casalupetogo.com",
+    "newLocation": {
+      "longitude": 29.936155086694246,
+      "latitude": 40.737519327046805
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ee0",
+    "username": "the_refuge_restauran_65",
+    "email": "info@refugecusine.com",
+    "newLocation": {
+      "longitude": 29.90179114792903,
+      "latitude": 40.75452655460936
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ee2",
+    "username": "carlitos_mxican_rest_68",
+    "email": "jaimescarlos1@yahoo.com",
+    "newLocation": {
+      "longitude": 29.943520141348106,
+      "latitude": 40.766314239700954
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ee4",
+    "username": "tacos_el_jalisciense_70",
+    "email": "TacosElJalisciense440@gmail.com",
+    "newLocation": {
+      "longitude": 29.90722827117626,
+      "latitude": 40.75236018345901
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ee6",
+    "username": "lami_fusion_69",
+    "email": "sales@lamifusion.com",
+    "newLocation": {
+      "longitude": 29.939135474411273,
+      "latitude": 40.73699042434915
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485ee8",
+    "username": "silver_dollar_saloon_71",
+    "email": "SilverDollarmarysville@yahoo.com",
+    "newLocation": {
+      "longitude": 29.962225680077047,
+      "latitude": 40.77752916200849
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485eea",
+    "username": "steaming_seafood_res_72",
+    "email": "Cuiliansitu@gmail.com",
+    "newLocation": {
+      "longitude": 29.961436121041416,
+      "latitude": 40.79851836050392
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485eec",
+    "username": "the_oaks_clubhouse_74",
+    "email": "info@lwwa.org",
+    "newLocation": {
+      "longitude": 29.93529408636789,
+      "latitude": 40.754098942940395
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bd92c838293de485eee",
+    "username": "pardon_my_cheesestea_75",
+    "email": "pr@virtualdiningconcepts.com",
+    "newLocation": {
+      "longitude": 29.918775627553885,
+      "latitude": 40.78134393704314
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485ef0",
+    "username": "tofanellis_gold_coun_77",
+    "email": "angie.tofanellis@gmail.com",
+    "newLocation": {
+      "longitude": 29.955890026161253,
+      "latitude": 40.74838145279669
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485ef2",
+    "username": "cirinos_at_main_stre_78",
+    "email": "ryancirino@yahoo.com",
+    "newLocation": {
+      "longitude": 29.948537875874614,
+      "latitude": 40.80040008223899
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485ef4",
+    "username": "diegos_restaurant_79",
+    "email": "goodfood@diegosrestaurant.com",
+    "newLocation": {
+      "longitude": 29.941539888493512,
+      "latitude": 40.76991116602919
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485ef6",
+    "username": "meze_eatery_grass_va_82",
+    "email": "info@mezeeatery.com",
+    "newLocation": {
+      "longitude": 29.923558934305483,
+      "latitude": 40.7309002599308
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485ef8",
+    "username": "enriques_lounge_80",
+    "email": "enriqueslounge@gmail.com",
+    "newLocation": {
+      "longitude": 29.96942396932135,
+      "latitude": 40.7492918261833
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485efa",
+    "username": "el_milagro_81",
+    "email": "victor@elmilagromenu.com",
+    "newLocation": {
+      "longitude": 29.945234637476595,
+      "latitude": 40.76831811213524
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485efc",
+    "username": "marias_mexican_resta_83",
+    "email": "mariasmexicanrestaurantgv@gmail.com",
+    "newLocation": {
+      "longitude": 29.939779622375642,
+      "latitude": 40.78574296477317
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f00",
+    "username": "pine_street_burgers_86",
+    "email": "INFO@PINESTREETBURGERS.COM",
+    "newLocation": {
+      "longitude": 29.951029820560343,
+      "latitude": 40.73687332789586
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485efe",
+    "username": "petes_pizza_tap_hous_84",
+    "email": "petespizzagv@yahoo.com",
+    "newLocation": {
+      "longitude": 29.94355745082717,
+      "latitude": 40.760168722529635
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f02",
+    "username": "robinson_201_87",
+    "email": "rei@robinsonenterprises.com",
+    "newLocation": {
+      "longitude": 29.938325425947884,
+      "latitude": 40.729623576049164
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f04",
+    "username": "humpty_dumpty_kitche_88",
+    "email": "humptydumptykitchen.shop@gmail.com",
+    "newLocation": {
+      "longitude": 29.94311905254891,
+      "latitude": 40.771894694805326
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f06",
+    "username": "comedor_89",
+    "email": "hello@comedorgv.com",
+    "newLocation": {
+      "longitude": 29.94380938725338,
+      "latitude": 40.76593121689197
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f0a",
+    "username": "gold_vibe_kombuchary_91",
+    "email": "sales@goldvibe.com",
+    "newLocation": {
+      "longitude": 29.94066660882578,
+      "latitude": 40.73576915711981
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f08",
+    "username": "wild_eye_pub_85",
+    "email": "info@wildeyepub.com",
+    "newLocation": {
+      "longitude": 29.92700806312595,
+      "latitude": 40.762491911797795
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f0e",
+    "username": "auld_dubliner_tahoe_92",
+    "email": "Randy@AuldDublinerTahoe.com",
+    "newLocation": {
+      "longitude": 29.900639162034416,
+      "latitude": 40.75681260693145
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f0c",
+    "username": "bicycle_thief_90",
+    "email": "info@bicyclethiefgv.com",
+    "newLocation": {
+      "longitude": 29.941503687574855,
+      "latitude": 40.7629658755862
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f12",
+    "username": "mogrog_cafe_95",
+    "email": "alex@mogrog.com",
+    "newLocation": {
+      "longitude": 29.948449428689646,
+      "latitude": 40.726738720868525
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f16",
+    "username": "sierra_surf_club_96",
+    "email": "tahoecity.info@evohotel.com",
+    "newLocation": {
+      "longitude": 29.926206302898667,
+      "latitude": 40.75124243572465
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f18",
+    "username": "zas_lakefront_98",
+    "email": "jeff@zaslakefront.com",
+    "newLocation": {
+      "longitude": 29.942762870612288,
+      "latitude": 40.76733802085953
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f1a",
+    "username": "bridgetender_tavern__99",
+    "email": "tahoebridgetender@gmail.com",
+    "newLocation": {
+      "longitude": 29.92726894315426,
+      "latitude": 40.76016661903085
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bdb2c838293de48615c",
+    "username": "las_brasas_mxican_re_67",
+    "email": "lasbrasasyubacity@gmail.com",
+    "newLocation": {
+      "longitude": 29.9722584417267,
+      "latitude": 40.73374502419302
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bdb2c838293de48616e",
+    "username": "cool_hand_lukes_66",
+    "email": "inquiries@heritagerb.com",
+    "newLocation": {
+      "longitude": 29.928825010191055,
+      "latitude": 40.764382618428705
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f10",
+    "username": "22_bistro_93",
+    "email": "twentytwobistro@gmail.com",
+    "newLocation": {
+      "longitude": 29.9438515753694,
+      "latitude": 40.76696146187935
+    }
+  },
+  {
+    "success": true,
+    "userId": "68bc9bda2c838293de485f14",
+    "username": "tremigo_mexican_kitc_94",
+    "email": "Rachel@tremigotahoe.com",
+    "newLocation": {
+      "longitude": 29.94426319851775,
+      "latitude": 40.789635371972395
+    }
+  }
+]

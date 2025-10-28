@@ -1,0 +1,286 @@
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { UserRepositoryInterface } from './repositories/abstract/user.repository-interface';
+import { User, UserDocument } from './models/user.model';
+import { RoleService } from './role.service';
+import { RoleEnum } from './models/role.model';
+import { UpdateUserDto } from './dtos/update-user.dto';
+import { StorageService } from 'src/storage/storage.service';
+import { AttachmentService } from 'src/attachment/attachment.service';
+import { AttachmentType } from 'src/attachment/models/attachment.model';
+import { LifestyleInfoService } from './lifestyle-info.service';
+import {
+  LifestyleCategory,
+  LifestyleInfoDocument,
+} from './models/lifestyle-info.model';
+import { Types } from 'mongoose';
+import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
+import { BusinessService } from 'src/business/business.service';
+
+@Injectable()
+export class UserService {
+  constructor(
+    @Inject(UserRepositoryInterface)
+    private readonly userRepository: UserRepositoryInterface,
+    private readonly roleService: RoleService,
+    private readonly storageService: StorageService,
+    private readonly attachmentService: AttachmentService,
+    private readonly lifestyleInfoService: LifestyleInfoService,
+    private readonly businessService: BusinessService,
+  ) {}
+
+  async getUserByEmail(email: string): Promise<UserDocument> {
+    return this.userRepository.findOne({ email });
+  }
+
+  async getUserByPhone(phone: string): Promise<UserDocument> {
+    return this.userRepository.findOne({ phone });
+  }
+
+  async getUserByPhoneOrEmail(
+    phone?: string,
+    email?: string,
+  ): Promise<UserDocument> {
+    const query: any = { $or: [] };
+
+    if (phone) {
+      query.$or.push({ phone });
+    }
+
+    if (email) {
+      query.$or.push({ email });
+    }
+
+    if (query.$or.length === 0) {
+      return null;
+    }
+
+    return this.userRepository.findOne(query);
+  }
+
+  async createUser(user: Partial<User>): Promise<UserDocument> {
+    // Determine role based on profileType
+    let roleEnum: RoleEnum;
+    if (user.profileType === 'business') {
+      roleEnum = RoleEnum.BUSINESS;
+    } else if (user.profileType === 'individual') {
+      roleEnum = RoleEnum.INDIVIDUAL;
+    } else {
+      roleEnum = RoleEnum.USER;
+    }
+    
+    let role = await this.roleService.getOrCreateRole(roleEnum);
+    user.roles = [role];
+    console.log('@createUser..... ', JSON.stringify(user, undefined, 2));
+    const newUser = await this.userRepository.create(user);
+    return newUser;
+  }
+
+  async updateUser(
+    userId: string,
+    user: Partial<UserDocument>,
+  ): Promise<UserDocument> {
+    console.log('@updateUser..... ', JSON.stringify(user, undefined, 2));
+    return this.userRepository.update(userId, { ...user });
+  }
+
+  async updateUserProfile(
+    userId: string,
+    user: UpdateUserDto,
+  ): Promise<UserDocument> {
+    console.log('@1........', JSON.stringify(user, null, 2));
+
+    const updatePayload: any = {
+      displayName: user.displayName,
+      username: user.username,
+      dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth) : undefined,
+      profileType: user.profileType,
+      attributes: user.attributes,
+      social: user.social,
+    };
+    console.log('@updatePayload....', updatePayload);
+
+    if (user.location) {
+      updatePayload.location = {
+        type: user.location.type,
+        coordinates: user.location.coordinates,
+      };
+    }
+    const updatedUser = await this.userRepository.update(userId, updatePayload);
+    return updatedUser;
+  }
+
+  async updateUserProfileImage(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<UserDocument> {
+    const user = await this.getUserById(userId);
+    file.originalname = `${user.username}-${file.originalname}-${Date.now()}`;
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.profileImage) {
+      await this.storageService.deleteFile(user.profileImage.path);
+      const attachment = await this.attachmentService.getAttachmentByPath(
+        user.profileImage.path,
+      );
+      if (attachment) {
+        await this.attachmentService.deleteAttachment(
+          attachment._id.toString(),
+        );
+      }
+    }
+
+    const filePath = await this.storageService.uploadFile(file);
+
+    const newAttachment = await this.attachmentService.createAttachment({
+      filename: file.originalname,
+      path: filePath,
+      type: AttachmentType.PROFILE_IMAGE,
+      url: await this.storageService.getFilePublicUrl(filePath),
+      user: user,
+    });
+
+    const updatedUser = await this.updateUser(userId, {
+      profileImage: newAttachment,
+    });
+    return updatedUser;
+  }
+
+  async getAllUsers(): Promise<UserDocument[]> {
+    return this.userRepository.findAll();
+  }
+
+  async getUserById(id: string): Promise<UserDocument> {
+    let user = await this.userRepository.findById(id);
+    if (user) {
+      try {
+        const business = await this.businessService.getBusiness(id);
+        if (business) {
+          // Convert to plain object and add businessId
+          const userObject = user.toObject();
+          (userObject as any).businessId = (business as any)._id.toString();
+          return userObject as any;
+        }
+      } catch (error) {
+        // Business not found for this user, which is fine
+        console.log(`No business found for user ${id}`);
+      }
+    }
+    return user;
+  }
+
+  async updateUserLifestyleInfo(
+    userId: string,
+    lifestyleInfoIds: string[],
+  ): Promise<UserDocument> {
+    const user = await this.getUserById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const lifestyleInfoObjectIds = lifestyleInfoIds.map(
+      (id) => new Types.ObjectId(id),
+    );
+
+    return this.userRepository.update(
+      userId,
+      { lifestyleInfo: lifestyleInfoObjectIds as any },
+      [{ path: 'lifestyleInfo', select: 'name icon category' }],
+    );
+  }
+
+  async getUserLifestyleInfo(userId: string): Promise<LifestyleInfoDocument[]> {
+    // ADDED BY GORKEM => Get lifestyle info for the user with the lifestyle info schema
+    const user = await this.userRepository.findById(userId, [
+      { path: 'lifestyleInfo', select: 'name icon category' },
+    ]);
+    return user.lifestyleInfo;
+  }
+
+  async getUsersByLifestyleInfo(
+    lifestyleInfoId: string,
+  ): Promise<UserDocument[]> {
+    return this.userRepository.findAll({
+      lifestyleInfo: new Types.ObjectId(lifestyleInfoId),
+    });
+  }
+
+  async getUsersByLifestyleCategory(
+    category: LifestyleCategory,
+  ): Promise<UserDocument[]> {
+    const lifestyleInfos =
+      await this.lifestyleInfoService.getLifestyleInfoByCategory(category);
+    const lifestyleInfoIds = lifestyleInfos.map((info) => info._id);
+
+    return this.userRepository.findAll({
+      lifestyleInfo: { $in: lifestyleInfoIds },
+    });
+  }
+
+  async updateUserOnlineStatus(
+    userId: string,
+    isOnline: boolean,
+  ): Promise<void> {
+    await this.userRepository.update(userId, { isOnline });
+  }
+
+  async getOnlineUsers(userIds: string[]): Promise<string[]> {
+    let userObjectIdIds = userIds.map((id) => new Types.ObjectId(id));
+    const onlineUsers = await this.userRepository.findAll({
+      _id: { $in: userObjectIdIds },
+      isOnline: true,
+    });
+    return onlineUsers.map((user) => user._id.toString());
+  }
+
+  async getMe(userId: string): Promise<UserDocument> {
+    const user = await this.userRepository.findById(userId, [
+      { path: 'lifestyleInfo', select: 'name icon category' },
+    ]);
+
+    if (user) {
+      try {
+        const business = await this.businessService.getBusiness(userId);
+        if (business) {
+          // Convert to plain object and add businessId
+          const userObject = user.toObject();
+          (userObject as any).businessId = (business as any)._id.toString();
+          return userObject as any;
+        }
+      } catch (error) {
+        // Business not found for this user, which is fine
+        console.log(`No business found for user ${userId}`);
+      }
+    }
+
+    return user;
+  }
+
+  async findNearby(
+    latitude: number,
+    longitude: number,
+    maxDistance: number,
+    page: number,
+    limit: number,
+  ): Promise<PaginatedResultDto<UserDocument>> {
+    const { data, total } = await this.userRepository.findNearby(
+      latitude,
+      longitude,
+      maxDistance,
+      page,
+      limit,
+    );
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async isUsernameTaken(username: string): Promise<boolean> {
+    const user = await this.userRepository.findOne({ username });
+    return !!user;
+  }
+}

@@ -1,0 +1,320 @@
+{
+    "info": {
+        "name": "FTRL Backend API - Map Discovery",
+        "description": "API collection for map discovery endpoints. All endpoints require authentication via Bearer token.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Map Discovery",
+            "item": [
+                {
+                    "name": "Search",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/map-discovery/search?type={{type}}&latitude={{latitude}}&longitude={{longitude}}&mil={{mil}}&page={{page}}&limit={{limit}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["map-discovery", "search"],
+                            "query": [
+                                {
+                                    "key": "type",
+                                    "value": "{{type}}",
+                                    "description": "Type of search: 'users' or business types (food&beverage, activity, night life, hair&beauty, body&wellness)",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "latitude",
+                                    "value": "{{latitude}}",
+                                    "description": "Latitude coordinate for search center",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "longitude",
+                                    "value": "{{longitude}}",
+                                    "description": "Longitude coordinate for search center",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "mil",
+                                    "value": "{{mil}}",
+                                    "description": "Search radius in miles (default: 10)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "{{page}}",
+                                    "description": "Page number for pagination (default: 1)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "{{limit}}",
+                                    "description": "Number of results per page (default: 10)",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Search for users or businesses by type within a specified radius from given coordinates. Returns paginated results."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Search Business",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/map-discovery/search-business?name={{businessName}}&latitude={{latitude}}&longitude={{longitude}}&mil={{mil}}&page={{page}}&limit={{limit}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["map-discovery", "search-business"],
+                            "query": [
+                                {
+                                    "key": "name",
+                                    "value": "{{businessName}}",
+                                    "description": "Business name to search for",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "latitude",
+                                    "value": "{{latitude}}",
+                                    "description": "Latitude coordinate for search center",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "longitude",
+                                    "value": "{{longitude}}",
+                                    "description": "Longitude coordinate for search center",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "mil",
+                                    "value": "{{mil}}",
+                                    "description": "Search radius in miles (default: 10)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "{{page}}",
+                                    "description": "Page number for pagination (default: 1)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "{{limit}}",
+                                    "description": "Number of results per page (default: 10)",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Search for businesses by name within a specified radius from given coordinates. Returns paginated results."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Search Business by Name",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/map-discovery/search-business-by-name?name={{businessName}}&page={{page}}&limit={{limit}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["map-discovery", "search-business-by-name"],
+                            "query": [
+                                {
+                                    "key": "name",
+                                    "value": "{{businessName}}",
+                                    "description": "Business name to search for",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "{{page}}",
+                                    "description": "Page number for pagination (default: 1)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "{{limit}}",
+                                    "description": "Number of results per page (default: 10)",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Search for businesses by name globally (no location filter). Returns paginated results."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Search Individual",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/map-discovery/search-individual?name={{individualName}}&latitude={{latitude}}&longitude={{longitude}}&mil={{mil}}&page={{page}}&limit={{limit}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["map-discovery", "search-individual"],
+                            "query": [
+                                {
+                                    "key": "name",
+                                    "value": "{{individualName}}",
+                                    "description": "Individual name to search for",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "latitude",
+                                    "value": "{{latitude}}",
+                                    "description": "Latitude coordinate for search center",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "longitude",
+                                    "value": "{{longitude}}",
+                                    "description": "Longitude coordinate for search center",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "mil",
+                                    "value": "{{mil}}",
+                                    "description": "Search radius in miles (required)",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "{{page}}",
+                                    "description": "Page number for pagination (default: 1)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "{{limit}}",
+                                    "description": "Number of results per page (max: 100, default: 10)",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Search for individuals by name within a specified radius from given coordinates. Returns paginated results."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Search Individual by Name",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/map-discovery/search-individual-by-name?name={{individualName}}&page={{page}}&limit={{limit}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["map-discovery", "search-individual-by-name"],
+                            "query": [
+                                {
+                                    "key": "name",
+                                    "value": "{{individualName}}",
+                                    "description": "Individual name to search for",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "{{page}}",
+                                    "description": "Page number for pagination (default: 1)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "{{limit}}",
+                                    "description": "Number of results per page (max: 100, default: 10)",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Search for individuals by name globally (no location filter). Returns paginated results."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000",
+            "description": "Base URL for the API"
+        },
+        {
+            "key": "token",
+            "value": "your_jwt_token_here",
+            "description": "JWT authentication token"
+        },
+        {
+            "key": "type",
+            "value": "users",
+            "description": "Search type: users, food&beverage, activity, night life, hair&beauty, body&wellness"
+        },
+        {
+            "key": "latitude",
+            "value": "40.7128",
+            "description": "Latitude coordinate (example: New York City)"
+        },
+        {
+            "key": "longitude",
+            "value": "-74.0060",
+            "description": "Longitude coordinate (example: New York City)"
+        },
+        {
+            "key": "mil",
+            "value": "10",
+            "description": "Search radius in miles"
+        },
+        {
+            "key": "page",
+            "value": "1",
+            "description": "Page number for pagination"
+        },
+        {
+            "key": "limit",
+            "value": "10",
+            "description": "Number of results per page"
+        },
+        {
+            "key": "businessName",
+            "value": "Coffee Shop",
+            "description": "Business name to search for"
+        },
+        {
+            "key": "individualName",
+            "value": "John Doe",
+            "description": "Individual name to search for"
+        }
+    ]
+}

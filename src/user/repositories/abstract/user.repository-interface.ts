@@ -1,0 +1,8 @@
+import { BaseRepository } from "src/common/repository/abstract/base.repository";
+import { UserDocument } from "src/user/models/user.model";
+
+export const UserRepositoryInterface = 'UserRepositoryInterface';
+
+export interface UserRepositoryInterface extends BaseRepository<UserDocument> {
+    findNearby(latitude: number, longitude: number, maxDistance: number, page: number, limit: number): Promise<{ data: UserDocument[], total: number }>;
+}
