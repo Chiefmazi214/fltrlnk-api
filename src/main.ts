@@ -29,9 +29,16 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   const port = process.env.PORT || 3000;
-  const chatPort = process.env.CHAT_SERVER_PORT || 3001;
   await app.listen(port);
+  
+  const protocol = process.env.NODE_ENV === 'production' ? 'wss' : 'ws';
+  const host = process.env.NODE_ENV === 'production' 
+    ? process.env.HEROKU_APP_NAME 
+      ? `${process.env.HEROKU_APP_NAME}.herokuapp.com` 
+      : 'your-domain.com'
+    : 'localhost';
+  
   console.log(`Application is running on port: ${port}`);
-  console.log(`WebSocket server is running on ws://localhost:${chatPort}/chat`);
+  console.log(`WebSocket server is running on ${protocol}://${host}/socket.io/`);
 }
 bootstrap();
