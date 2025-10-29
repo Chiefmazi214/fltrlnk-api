@@ -30,16 +30,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  
-  const protocol = process.env.NODE_ENV === 'production' ? 'wss' : 'ws';
-  const host = process.env.NODE_ENV === 'production' 
-    ? process.env.HEROKU_APP_NAME 
-      ? `${process.env.HEROKU_APP_NAME}.herokuapp.com` 
-      : 'fltr-staging-abf2467cb86d.herokuapp.com'
-    : 'localhost';
-  
+
   console.log(`Application is running on port: ${port}`);
-  console.log(`WebSocket server is running on ${protocol}://${host}/socket.io/?EIO=4&transport=websocket`);
-  console.log(`Chat namespace: ${protocol}://${host}/socket.io/chat`);
 }
 bootstrap();

@@ -5,6 +5,7 @@ import { UseGuards, Inject } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { WsAuthGuard } from 'src/auth/guards/ws-auth.guard';
 import { WsAuthMiddleware } from 'src/auth/middleware/ws-auth.middleware';
+import { ISendMessagePayload } from './chat.types';
 
 @WebSocketGateway({
     cors: {
@@ -42,6 +43,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             try {
                 await this.wsAuthMiddleware.use(socket, next);
             } catch (error) {
+                console.log('Error in middleware:', error);
                 next(error);
             }
         });
@@ -129,7 +131,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @UseGuards(WsAuthGuard)
     @SubscribeMessage('sendMessage')
-    async handleMessage(client: Socket, payload: any) {
+    async handleMessage(client: Socket, payload: ISendMessagePayload) {
         try {
             const userId = client.data.userId;
             
