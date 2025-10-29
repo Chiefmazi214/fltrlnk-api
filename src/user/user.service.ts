@@ -3,7 +3,11 @@ import { UserRepositoryInterface } from './repositories/abstract/user.repository
 import { User, UserDocument } from './models/user.model';
 import { RoleService } from './role.service';
 import { RoleEnum } from './models/role.model';
-import { ChangeBlockStatusInput, UpdateUserDto } from './dtos/update-user.dto';
+import {
+  ChangeBlockStatusInput,
+  GetUsersWithPaginationQueryInput,
+  UpdateUserDto,
+} from './dtos/user.dto';
 import { StorageService } from 'src/storage/storage.service';
 import { AttachmentService } from 'src/attachment/attachment.service';
 import { AttachmentType } from 'src/attachment/models/attachment.model';
@@ -149,6 +153,48 @@ export class UserService {
 
   async getAllUsers(): Promise<UserDocument[]> {
     return this.userRepository.findAll();
+  }
+
+  async getUsersWithPagination(
+    query: GetUsersWithPaginationQueryInput,
+  ): Promise<PaginatedResultDto<UserDocument>> {
+    const queryBuilder: Record<string, any> = {};
+    if (query.searchQuery) {
+      queryBuilder.$or = [
+        { username: { $regex: query.searchQuery, $options: 'i' } },
+        { displayName: { $regex: query.searchQuery, $options: 'i' } },
+        { email: { $regex: query.searchQuery, $options: 'i' } },
+        { phone: { $regex: query.searchQuery, $options: 'i' } },
+      ];
+    }
+    if (query.blocked) {
+      queryBuilder.blocked = query.blocked === 'true';
+    }
+    if (query.emailVerified) {
+      queryBuilder.emailVerified = query.emailVerified === 'true';
+    }
+    if (query.phoneVerified) {
+      queryBuilder.phoneVerified = query.phoneVerified === 'true';
+    }
+    if (query.profileType) {
+      queryBuilder.profileType = query.profileType;
+    }
+
+    const result = await this.userRepository.findWithPagination(
+      query,
+      undefined,
+      {
+        page: query.page,
+        limit: query.limit,
+      },
+    );
+
+    return {
+      data: result.data,
+      total: result.total,
+      page: query.page,
+      limit: query.limit,
+    };
   }
 
   async getUserById(id: string): Promise<UserDocument> {

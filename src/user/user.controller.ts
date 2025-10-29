@@ -13,7 +13,11 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { ChangeBlockStatusInput, UpdateUserDto } from './dtos/update-user.dto';
+import {
+  ChangeBlockStatusInput,
+  GetUsersWithPaginationQueryInput,
+  UpdateUserDto,
+} from './dtos/user.dto';
 import { UpdateLifestyleInfoDto } from './dtos/update-lifestyle-info.dto';
 import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -29,7 +33,6 @@ import { CommonParams } from 'src/common/dtos/common.dtos';
 
 @ApiTags('Users')
 @Controller('users')
-@ApiBearerAuth()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -38,9 +41,20 @@ export class UserController {
     return this.userService.getAllUsers();
   }
 
+  @Get('admin')
+  @UseGuards(AuthGuard)
+  @Roles(RoleEnum.ADMIN)
+  @ApiBearerAuth()
+  async getUsersWithPagination(
+    @Query() query: GetUsersWithPaginationQueryInput,
+  ) {
+    return this.userService.getUsersWithPagination(query);
+  }
+
   @Delete(':id')
   @UseGuards(AuthGuard)
   @Roles(RoleEnum.ADMIN)
+  @ApiBearerAuth()
   async deleteUserById(@Param() params: CommonParams) {
     return this.userService.deleteUserById(params.id);
   }
@@ -48,6 +62,7 @@ export class UserController {
   @Put('block/:id')
   @UseGuards(AuthGuard)
   @Roles(RoleEnum.ADMIN)
+  @ApiBearerAuth()
   async changeBlockStatusById(
     @Param() params: CommonParams,
     @Body() input: ChangeBlockStatusInput,
@@ -57,6 +72,7 @@ export class UserController {
 
   @Put('update')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async updateUser(@Body() user: UpdateUserDto, @Req() req: Request) {
     return this.userService.updateUserProfile(req.user._id, user);
   }
@@ -64,6 +80,7 @@ export class UserController {
   @Put('update/profile-image')
   @UseInterceptors(FileInterceptor('attachment'))
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async updateUserProfileImage(
     @UploadedFile() attachment: Express.Multer.File,
     @Req() req: Request,
@@ -73,6 +90,7 @@ export class UserController {
 
   @Put('lifestyle-info')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Update user lifestyle information',
     description:
@@ -121,6 +139,7 @@ export class UserController {
 
   @Get('lifestyle-info')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get user lifestyle information',
     description:
@@ -162,13 +181,14 @@ export class UserController {
 
   @Get('me')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async getMe(@Req() req: Request) {
     return this.userService.getMe(req.user._id);
   }
 
   @Get(`/:id`)
-  async getUserById(@Param('id') id: string) {
-    return this.userService.getUserById(id);
+  async getUserById(@Param() params: CommonParams) {
+    return this.userService.getUserById(params.id);
   }
 
   @Get('check-username/:username')

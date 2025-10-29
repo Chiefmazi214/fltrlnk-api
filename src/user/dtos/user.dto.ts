@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsBoolean,
+  IsBooleanString,
   IsDateString,
   IsEnum,
   IsNumber,
@@ -11,6 +12,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
 
 export class UpdateUserLocationDto {
   @IsString()
@@ -87,4 +89,41 @@ export class ChangeBlockStatusInput {
   @ApiProperty({ description: 'Whether the user is blocked', example: true })
   @IsBoolean()
   blocked: boolean;
+}
+
+export class GetUsersWithPaginationQueryInput extends PaginationDto {
+  @ApiProperty({ description: 'The search query', example: 'John Doe' })
+  @IsString()
+  @IsOptional()
+  searchQuery?: string;
+
+  //blocked
+  @ApiProperty({ description: 'Whether the user is blocked', example: true })
+  @IsBooleanString()
+  @IsOptional()
+  blocked?: string;
+
+  //email verified
+  @ApiProperty({
+    description: 'Whether the user is email verified',
+    example: true,
+  })
+  @IsBooleanString()
+  @IsOptional()
+  emailVerified?: string;
+
+  //phone verified
+  @ApiProperty({
+    description: 'Whether the user is phone verified',
+    example: true,
+  })
+  @IsBooleanString()
+  @IsOptional()
+  phoneVerified?: string;
+
+  //profile type
+  @ApiProperty({ description: 'The profile type', example: 'business' })
+  @IsString()
+  @IsOptional()
+  profileType?: string;
 }
