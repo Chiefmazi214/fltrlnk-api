@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 
 @Injectable()
@@ -12,7 +13,7 @@ export class WsAuthMiddleware {
             
             if (!token) {
                 console.log('WsAuthMiddleware: No token provided');
-                return next(new Error('Unauthorized - No token provided'));
+                return next(new WsException('Unauthorized - No token provided'));
             }
 
             const payload = await this.jwtService.verifyAsync(token, {
@@ -21,7 +22,7 @@ export class WsAuthMiddleware {
 
             if (!payload || !payload._id) {
                 console.log('WsAuthMiddleware: Invalid token payload');
-                return next(new Error('Unauthorized - Invalid token'));
+                return next(new WsException('Unauthorized - Invalid token'));
             }
 
             // Store user information in socket
@@ -32,7 +33,7 @@ export class WsAuthMiddleware {
             next();
         } catch (error) {
             console.log('WsAuthMiddleware: Authentication failed -', error.message);
-            next(new Error('Unauthorized - Authentication failed'));
+            next(new WsException('Unauthorized - Authentication failed'));
         }
     }
 
@@ -50,4 +51,4 @@ export class WsAuthMiddleware {
 
         return undefined;
     }
-} 
+}
