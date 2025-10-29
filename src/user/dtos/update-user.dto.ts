@@ -1,73 +1,90 @@
-import { IsArray, IsDate, IsDateString, IsEnum, IsLatitude, IsLongitude, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from "class-validator";
-import { Type } from "class-transformer";
+import {
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateUserLocationDto {
-    @IsString()
-    @IsEnum(['Point'])
-    type: string;
+  @IsString()
+  @IsEnum(['Point'])
+  type: string;
 
-    @IsArray()
-    @IsNumber({}, { each: true })
-    @Type(() => Number)
-    coordinates: number[];
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @Type(() => Number)
+  coordinates: number[];
 }
 
 export class SocialLinksDto {
-    @IsString()
-    @IsOptional()
-    website: string;
+  @IsString()
+  @IsOptional()
+  website: string;
 
-    @IsString()
-    @IsOptional()
-    instagram: string;
+  @IsString()
+  @IsOptional()
+  instagram: string;
 
-    @IsString()
-    @IsOptional()
-    tiktok: string;
+  @IsString()
+  @IsOptional()
+  tiktok: string;
 
-    @IsString()
-    @IsOptional()
-    youtube: string;
+  @IsString()
+  @IsOptional()
+  youtube: string;
 
-    @IsString()
-    @IsOptional()
-    linkedin: string;
+  @IsString()
+  @IsOptional()
+  linkedin: string;
 
-    @IsString()
-    @IsOptional()
-    facebook: string;
+  @IsString()
+  @IsOptional()
+  facebook: string;
 }
 
 export class UpdateUserDto {
-    @IsString()
-    @IsOptional()
-    displayName: string;
-    
-    @IsString()
-    @IsOptional()
-    username: string;
+  @IsString()
+  @IsOptional()
+  displayName: string;
 
-    @IsDateString()
-    @IsOptional()
-    dateOfBirth: string;
+  @IsString()
+  @IsOptional()
+  username: string;
 
-    @IsString()
-    @IsOptional()
-    profileType: string;
+  @IsDateString()
+  @IsOptional()
+  dateOfBirth: string;
 
-    @IsArray()
-    @IsOptional()
-    attributes: string[];
+  @IsString()
+  @IsOptional()
+  profileType: string;
 
-    @IsObject()
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => UpdateUserLocationDto)
-    location: UpdateUserLocationDto;
+  @IsArray()
+  @IsOptional()
+  attributes: string[];
 
-    @IsObject()
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => SocialLinksDto)
-    social: SocialLinksDto;
+  @IsObject()
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpdateUserLocationDto)
+  location: UpdateUserLocationDto;
+
+  @IsObject()
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => SocialLinksDto)
+  social: SocialLinksDto;
+}
+
+export class ChangeBlockStatusInput {
+  @ApiProperty({ description: 'Whether the user is blocked', example: true })
+  @IsBoolean()
+  blocked: boolean;
 }

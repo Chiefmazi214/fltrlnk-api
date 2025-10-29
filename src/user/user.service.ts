@@ -3,7 +3,7 @@ import { UserRepositoryInterface } from './repositories/abstract/user.repository
 import { User, UserDocument } from './models/user.model';
 import { RoleService } from './role.service';
 import { RoleEnum } from './models/role.model';
-import { UpdateUserDto } from './dtos/update-user.dto';
+import { ChangeBlockStatusInput, UpdateUserDto } from './dtos/update-user.dto';
 import { StorageService } from 'src/storage/storage.service';
 import { AttachmentService } from 'src/attachment/attachment.service';
 import { AttachmentType } from 'src/attachment/models/attachment.model';
@@ -67,7 +67,7 @@ export class UserService {
     } else {
       roleEnum = RoleEnum.USER;
     }
-    
+
     let role = await this.roleService.getOrCreateRole(roleEnum);
     user.roles = [role];
     console.log('@createUser..... ', JSON.stringify(user, undefined, 2));
@@ -282,5 +282,13 @@ export class UserService {
   async isUsernameTaken(username: string): Promise<boolean> {
     const user = await this.userRepository.findOne({ username });
     return !!user;
+  }
+
+  async deleteUserById(id: string) {
+    return this.userRepository.delete(id);
+  }
+
+  async changeBlockStatusById(id: string, input: ChangeBlockStatusInput) {
+    return this.userRepository.update(id, { blocked: input.blocked });
   }
 }
