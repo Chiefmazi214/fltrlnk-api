@@ -1,9 +1,11 @@
+import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
+import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CommonModule } from './common/common.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { VerificationModule } from './verification/verification.module';
 import { MailModule } from './mail/mail.module';
@@ -33,6 +35,26 @@ import { NotificationModule } from './notification/notification.module';
       global: true,
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1d' },
+    }),
+    MailerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: async (
+        configService: ConfigService,
+      ): Promise<MailerOptions> => ({
+        transport: {
+          host: configService.get('EMAIL_HOST'),
+          port: +configService.get('EMAIL_PORT'),
+          secure: configService.get('EMAIL_SECURE') === 'true',
+          auth: {
+            user: configService.get('EMAIL_USER'),
+            pass: configService.get('EMAIL_PASSWORD'),
+          },
+        },
+        template: {
+          dir: process.cwd() + '/templates/',
+          adapter: new EjsAdapter(),
+        },
+      }),
     }),
     CommonModule,
     UserModule,

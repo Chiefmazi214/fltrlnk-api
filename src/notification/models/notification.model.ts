@@ -4,6 +4,7 @@ import { Colab } from 'src/chat/models/colab.model';
 
 export enum NotificationType {
   GENERAL = 'GENERAL',
+  EMAIL = 'EMAIL',
   COLAB_ACCEPTED = 'COLAB_ACCEPTED',
   COLAB_REJECTED = 'COLAB_REJECTED',
   COLAB_REQUESTED = 'COLAB_REQUESTED',

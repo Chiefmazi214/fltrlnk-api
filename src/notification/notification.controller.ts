@@ -50,4 +50,19 @@ export class NotificationController {
       actorId: req.user._id,
     });
   }
+
+  @Post('email')
+  @UseGuards(AuthGuard)
+  @Roles(RoleEnum.ADMIN)
+  @ApiBearerAuth()
+  async createEmailNotification(
+    @Body() createNotificationDto: CreateNotificationDto,
+    @Req() req: Request,
+  ) {
+    return this.notificationService.createNotification({
+      ...createNotificationDto,
+      actorId: req.user._id,
+      type: NotificationType.EMAIL,
+    });
+  }
 }

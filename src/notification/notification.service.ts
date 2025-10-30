@@ -5,6 +5,7 @@ import { NotificationType } from './models/notification.model';
 import { CreateNotificationDto } from './dtos/create-notification.dto';
 import { Expo } from 'expo-server-sdk';
 import { UserService } from 'src/user/user.service';
+import { MailService } from './mail.service';
 
 @Injectable()
 export class NotificationService {
@@ -14,6 +15,7 @@ export class NotificationService {
     private readonly userService: UserService,
     @Inject(NotificationRepositoryInterface)
     private readonly notificationRepository: NotificationRepositoryInterface,
+    private readonly mailService: MailService,
   ) {
     this.expo = new Expo();
   }
@@ -58,7 +60,13 @@ export class NotificationService {
 
     if (input.recipientId) {
       const user = await this.userService.getUserById(input.recipientId);
-      if (user?.expoPushToken) {
+      if (input.type === NotificationType.EMAIL) {
+        this.mailService.sendMail({
+          email: user?.email,
+          subject: input.title,
+          content: input.message,
+        });
+      } else if (user?.expoPushToken) {
         await this.sendExpoPushNotification(
           user.expoPushToken,
           input.title || 'New Notification',
