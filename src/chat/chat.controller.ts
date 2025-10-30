@@ -21,6 +21,8 @@ import {
 import { Request } from 'express';
 import { IsArray, IsString, ArrayMinSize, IsEnum } from 'class-validator';
 import { ChatRoomType } from './chat.types';
+import { CreateColabInput, UpdateColabInput } from './dtos/colab.dto';
+import { CommonParams } from 'src/common/dtos/common.dtos';
 
 class CreateChatRoomDto {
   @IsArray()
@@ -173,5 +175,24 @@ export class ChatController {
     @Query('type') type?: ChatRoomType,
   ) {
     return this.chatService.getUserChatRooms(req.user._id, type);
+  }
+
+  @Get('colabs')
+  async getColabs(@Req() req: Request) {
+    return this.chatService.getColabs(req.user._id);
+  }
+
+  @Post('colabs')
+  async createColab(@Body() input: CreateColabInput, @Req() req: Request) {
+    return this.chatService.createColab(input, req.user._id);
+  }
+
+  @Post('colabs/:id')
+  async updateColabStatus(
+    @Param() params: CommonParams,
+    @Body() input: UpdateColabInput,
+    @Req() req: Request,
+  ) {
+    return this.chatService.updateColabStatus(params.id, input, req.user._id);
   }
 }
