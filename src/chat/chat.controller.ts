@@ -9,6 +9,7 @@ import {
   Req,
   BadRequestException,
   Query,
+  Put,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { AuthGuard } from '../auth/guards/auth.guard';
@@ -187,7 +188,7 @@ export class ChatController {
     return this.chatService.createColab(input, req.user._id);
   }
 
-  @Post('colabs/:id')
+  @Put('colabs/:id')
   async updateColabStatus(
     @Param() params: CommonParams,
     @Body() input: UpdateColabInput,
