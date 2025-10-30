@@ -15,6 +15,8 @@ import { CreateNotificationDto } from './dtos/create-notification.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Request } from 'express';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RoleEnum } from 'src/user/models/role.model';
 
 @Controller('notification')
 export class NotificationController {
@@ -37,6 +39,7 @@ export class NotificationController {
 
   @Post()
   @UseGuards(AuthGuard)
+  @Roles(RoleEnum.ADMIN)
   @ApiBearerAuth()
   async createNotification(
     @Body() createNotificationDto: CreateNotificationDto,
