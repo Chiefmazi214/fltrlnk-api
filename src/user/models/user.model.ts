@@ -120,6 +120,9 @@ export class User {
   @Prop({ required: false, default: false })
   isOnline: boolean;
 
+  @Prop({ required: false })
+  expoPushToken: string;
+
   @Prop({ required: false, type: String })
   businessAddress: string;
 

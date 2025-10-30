@@ -6,9 +6,12 @@ import { MessageDocument } from './models/message.model';
 import { Types } from 'mongoose';
 import { CreateMessageDto } from './dtos/create-message.dto';
 import { UserService } from 'src/user/user.service';
-import { ChatRoomType } from './chat.types';
+import { ChatRoomType, ColabStatus } from './chat.types';
 import { ColabRepositoryInterface } from './repositories/abstract/colab.repository-interface';
 import { CreateColabInput, UpdateColabInput } from './dtos/colab.dto';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/models/notification.model';
+import { UserDocument } from 'src/user/models/user.model';
 
 @Injectable()
 export class ChatService {
@@ -19,6 +22,7 @@ export class ChatService {
     private readonly messageRepository: MessageRepositoryInterface,
     @Inject(ColabRepositoryInterface)
     private readonly colabRepository: ColabRepositoryInterface,
+    private readonly notificationService: NotificationService,
     private readonly userService: UserService,
   ) {}
 
@@ -172,19 +176,25 @@ export class ChatService {
     return chatRoom;
   }
 
-  // colab GET, POST, PUT methods to be added here
-  // colab GET, POST, PUT methods to be added here
   async getColabs(userId: string) {
     return this.colabRepository.findAll({
       collaborator: { $in: [new Types.ObjectId(userId)] },
     });
   }
 
-  async createColab(input: CreateColabInput, userId: string) {
+  async createColab(input: CreateColabInput, user: UserDocument) {
     const colab = await this.colabRepository.create({
       message: input.message,
-      user: new Types.ObjectId(userId),
+      user: user._id,
       collaborator: new Types.ObjectId(input.collaboratorId),
+    });
+
+    await this.notificationService.createNotification({
+      actorId: user._id.toString(),
+      recipientId: input.collaboratorId,
+      type: NotificationType.COLAB_REQUESTED,
+      message: `New colab request from ${user.displayName || user.username}`,
+      title: `Colab Request from ${user.displayName || user.username}`,
     });
 
     return colab;
@@ -193,11 +203,11 @@ export class ChatService {
   async updateColabStatus(
     colabId: string,
     input: UpdateColabInput,
-    userId: string,
+    user: UserDocument,
   ) {
     const colab = await this.colabRepository.findOne({
       _id: new Types.ObjectId(colabId),
-      collaborator: new Types.ObjectId(userId),
+      collaborator: user._id,
     });
     if (!colab) {
       throw new NotFoundException('Colab request not found');
@@ -205,6 +215,17 @@ export class ChatService {
 
     colab.status = input.status;
     await colab.save();
+
+    await this.notificationService.createNotification({
+      actorId: user._id.toString(),
+      recipientId: colab.user.toString(),
+      type:
+        input.status === ColabStatus.ACCEPTED
+          ? NotificationType.COLAB_ACCEPTED
+          : NotificationType.COLAB_REJECTED,
+      message: `Colab request ${colab.status} by ${user.displayName || user.username}`,
+      title: `Colab Request ${colab.status} by ${user.displayName || user.username}`,
+    });
 
     return colab;
   }

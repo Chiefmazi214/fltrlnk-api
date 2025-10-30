@@ -91,8 +91,6 @@ export class UserService {
     userId: string,
     user: UpdateUserDto,
   ): Promise<UserDocument> {
-    console.log('@1........', JSON.stringify(user, null, 2));
-
     const updatePayload: any = {
       displayName: user.displayName,
       username: user.username,
@@ -100,8 +98,8 @@ export class UserService {
       profileType: user.profileType,
       attributes: user.attributes,
       social: user.social,
+      expoPushToken: user.expoPushToken,
     };
-    console.log('@updatePayload....', updatePayload);
 
     if (user.location) {
       updatePayload.location = {
@@ -196,6 +194,8 @@ export class UserService {
       limit: query.limit,
     };
   }
+
+  
 
   async getUserById(id: string): Promise<UserDocument> {
     let user = await this.userRepository.findById(id);

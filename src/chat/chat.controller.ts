@@ -180,12 +180,14 @@ export class ChatController {
 
   @Get('colabs')
   async getColabs(@Req() req: Request) {
+    console.log("Fetching colabs for user:", req.user);
+    
     return this.chatService.getColabs(req.user._id);
   }
 
   @Post('colabs')
   async createColab(@Body() input: CreateColabInput, @Req() req: Request) {
-    return this.chatService.createColab(input, req.user._id);
+    return this.chatService.createColab(input, req.user);
   }
 
   @Put('colabs/:id')
@@ -194,6 +196,6 @@ export class ChatController {
     @Body() input: UpdateColabInput,
     @Req() req: Request,
   ) {
-    return this.chatService.updateColabStatus(params.id, input, req.user._id);
+    return this.chatService.updateColabStatus(params.id, input, req.user);
   }
 }

@@ -3,35 +3,86 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { NotificationType } from './models/notification.model';
 import { CreateNotificationDto } from './dtos/create-notification.dto';
+import { Expo } from 'expo-server-sdk';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class NotificationService {
-  constructor(
-    @Inject(NotificationRepositoryInterface)
-    private notificationRepository: NotificationRepositoryInterface,
-  ) {}
+  private readonly expo: Expo;
 
-  async createNotification(notification: CreateNotificationDto) {
-    const toObjectId = (id?: string) => (id ? new Types.ObjectId(id) : undefined);
+  constructor(
+    private readonly userService: UserService,
+    @Inject(NotificationRepositoryInterface)
+    private readonly notificationRepository: NotificationRepositoryInterface,
+  ) {
+    this.expo = new Expo();
+  }
+
+  private async sendExpoPushNotification(
+    expoPushToken: string,
+    title: string,
+    message: string,
+  ) {
+    if (!Expo.isExpoPushToken(expoPushToken)) {
+      console.error(`Invalid Expo push token: ${expoPushToken}`);
+      return;
+    }
+
+    try {
+      await this.expo.sendPushNotificationsAsync([
+        {
+          to: expoPushToken,
+          sound: 'default',
+          title,
+          body: message,
+        },
+      ]);
+    } catch (error) {
+      console.error('Error sending push notification:', error);
+    }
+  }
+
+  async createNotification(input: CreateNotificationDto) {
+    const toObjectId = (id?: string) =>
+      id ? new Types.ObjectId(id) : undefined;
     const payload: any = {
-      ...notification,
-      recipient: toObjectId(notification.recipientId),
-      actor: toObjectId(notification.actorId),
-      post: toObjectId(notification.postId),
-      connection: toObjectId(notification.connectionId),
+      ...input,
+      recipient: toObjectId(input.recipientId),
+      actor: toObjectId(input.actorId),
+      post: toObjectId(input.postId),
+      connection: toObjectId(input.connectionId),
+      colab: toObjectId(input.colabId),
     };
-    return this.notificationRepository.createNotification(payload);
+    const notification =
+      await this.notificationRepository.createNotification(payload);
+
+    if (input.recipientId) {
+      const user = await this.userService.getUserById(input.recipientId);
+      if (user?.expoPushToken) {
+        await this.sendExpoPushNotification(
+          user.expoPushToken,
+          input.title || 'New Notification',
+          input.message || 'You have a new notification',
+        );
+      }
+    }
+
+    return notification;
   }
 
   async getNotificationsForUser(userId: string, type?: NotificationType) {
-    const notifications = await this.notificationRepository.getNotificationsForUser(
-      new Types.ObjectId(userId), 
-      type
+    const notifications =
+      await this.notificationRepository.getNotificationsForUser(
+        new Types.ObjectId(userId),
+        type,
+      );
+
+    const deduplicatedNotifications =
+      this.deduplicateNotifications(notifications);
+    const sortedNotifications = this.sortNotificationsByDate(
+      deduplicatedNotifications,
     );
 
-    const deduplicatedNotifications = this.deduplicateNotifications(notifications);
-    const sortedNotifications = this.sortNotificationsByDate(deduplicatedNotifications);
-    
     return this.formatNotifications(sortedNotifications);
   }
 
@@ -53,34 +104,50 @@ export class NotificationService {
     return [
       ...otherNotifications,
       ...Array.from(likeMap.values()),
-      ...Array.from(followMap.values())
+      ...Array.from(followMap.values()),
     ];
   }
 
   private isLikeNotification(notification: any): boolean {
-    return notification.type === NotificationType.LIKE && 
-           notification.post && 
-           notification.actor;
+    return (
+      notification.type === NotificationType.LIKE &&
+      notification.post &&
+      notification.actor
+    );
   }
 
   private isFollowNotification(notification: any): boolean {
-    return notification.type === NotificationType.FOLLOW && 
-           notification.actor && 
-           notification.recipient;
+    return (
+      notification.type === NotificationType.FOLLOW &&
+      notification.actor &&
+      notification.recipient
+    );
   }
 
-  private handleLikeNotification(notification: any, likeMap: Map<string, any>): void {
+  private handleLikeNotification(
+    notification: any,
+    likeMap: Map<string, any>,
+  ): void {
     const key = this.createLikeKey(notification);
-    
-    if (!likeMap.has(key) || this.isMoreRecent(notification, likeMap.get(key))) {
+
+    if (
+      !likeMap.has(key) ||
+      this.isMoreRecent(notification, likeMap.get(key))
+    ) {
       likeMap.set(key, notification);
     }
   }
 
-  private handleFollowNotification(notification: any, followMap: Map<string, any>): void {
+  private handleFollowNotification(
+    notification: any,
+    followMap: Map<string, any>,
+  ): void {
     const key = this.createFollowKey(notification);
-    
-    if (!followMap.has(key) || this.isMoreRecent(notification, followMap.get(key))) {
+
+    if (
+      !followMap.has(key) ||
+      this.isMoreRecent(notification, followMap.get(key))
+    ) {
       followMap.set(key, notification);
     }
   }
@@ -101,19 +168,26 @@ export class NotificationService {
     return obj._id?.toString?.() || obj.toString();
   }
 
-  private isMoreRecent(newNotification: any, existingNotification: any): boolean {
-    return new Date(newNotification.createdAt) > new Date(existingNotification.createdAt);
+  private isMoreRecent(
+    newNotification: any,
+    existingNotification: any,
+  ): boolean {
+    return (
+      new Date(newNotification.createdAt) >
+      new Date(existingNotification.createdAt)
+    );
   }
 
   private sortNotificationsByDate(notifications: any[]): any[] {
-    return notifications.sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    return notifications.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
   }
 
   private formatNotifications(notifications: any[]): any[] {
-    return notifications.map(notification => 
-      notification.toObject ? notification.toObject() : { ...notification }
+    return notifications.map((notification) =>
+      notification.toObject ? notification.toObject() : { ...notification },
     );
   }
 

@@ -46,6 +46,7 @@
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "expo-server-sdk": "^4.0.0",
     "mongoose": "^8.13.1",
     "passport": "^0.7.0",
     "passport-facebook": "^3.0.0",

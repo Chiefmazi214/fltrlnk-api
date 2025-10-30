@@ -83,6 +83,10 @@ export class UpdateUserDto {
   @ValidateNested()
   @Type(() => SocialLinksDto)
   social: SocialLinksDto;
+
+  @IsString()
+  @IsOptional()
+  expoPushToken: string;
 }
 
 export class ChangeBlockStatusInput {

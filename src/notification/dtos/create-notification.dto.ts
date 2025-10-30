@@ -28,5 +28,13 @@ export class CreateNotificationDto {
 
   @IsOptional()
   @IsString()
+  colabId?: string;
+
+  @IsOptional()
+  @IsString()
   message?: string;
+
+  @IsOptional()
+  @IsString()
+  title?: string;
 } 
