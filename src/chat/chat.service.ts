@@ -1,11 +1,12 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ChatRoomRepositoryInterface } from './repositories/abstract/chat-room.repository-interface';
 import { MessageRepositoryInterface } from './repositories/abstract/message.repository-interface';
-import { ChatRoomDocument, ChatRoomType } from './models/chat-room.model';
+import { ChatRoomDocument } from './models/chat-room.model';
 import { MessageDocument } from './models/message.model';
 import { Types } from 'mongoose';
 import { CreateMessageDto } from './dtos/create-message.dto';
 import { UserService } from 'src/user/user.service';
+import { ChatRoomType } from './chat.types';
 
 @Injectable()
 export class ChatService {

@@ -1,6 +1,5 @@
 import { Inject, Injectable, BadRequestException } from '@nestjs/common';
 import { ConnectionRepositoryInterface } from './repositories/abstract/connection.repository-interface';
-import { Connection } from 'mongoose';
 import { ConnectionDocument, ConnectionStatus } from './models/connection.model';
 import { PopulationOptions } from 'src/common/repository/abstract/base.repository';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
@@ -10,7 +9,7 @@ import { ChatService } from 'src/chat/chat.service';
 import { FollowService } from './follow.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/models/notification.model';
-import { ChatRoomType } from 'src/chat/models/chat-room.model';
+import { ChatRoomType } from 'src/chat/chat.types';
 
 @Injectable()
 export class ConnectionService {

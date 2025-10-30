@@ -1,12 +1,9 @@
 import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
-import mongoose, { Document, HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 import { User } from 'src/user/models/user.model';
+import { ChatRoomType } from '../chat.types';
 
-export enum ChatRoomType {
-  BUSINESS = 'business',
-  PRIMARY = 'primary',
-  GENERAL = 'general',
-}
+
 
 @Schema({ timestamps: true, collection: 'chat-rooms' })
 export class ChatRoom {

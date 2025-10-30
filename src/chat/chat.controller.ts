@@ -20,7 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { Request } from 'express';
 import { IsArray, IsString, ArrayMinSize, IsEnum } from 'class-validator';
-import { ChatRoomType } from './models/chat-room.model';
+import { ChatRoomType } from './chat.types';
 
 class CreateChatRoomDto {
   @IsArray()
