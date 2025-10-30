@@ -6,11 +6,13 @@ import { Notification, NotificationSchema } from './models/notification.model';
 import { NotificationRepository } from './repositories/mongoose/notification.repository.mongoose';
 import { NotificationRepositoryInterface } from './repositories/abstract/notification.repository-interface';
 import { UserModule } from 'src/user/user.module';
+import { MailService } from './mail.service';
 
 @Global()
 @Module({
   providers: [
     NotificationService,
+    MailService,
     {
       provide: NotificationRepositoryInterface,
       useClass: NotificationRepository,
