@@ -40,6 +40,17 @@ export class CreateNotificationDto {
   @IsString()
   colabId?: string;
 
+
+  @IsOptional()
+  @IsString()
+  likeId?: string;
+
+
+  @IsOptional()
+  @IsString()
+  followId?: string;
+
+
   @ApiPropertyOptional({ name: 'message', description: 'Notification message' })
   @IsOptional()
   @IsString()

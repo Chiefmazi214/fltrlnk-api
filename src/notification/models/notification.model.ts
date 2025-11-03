@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { Colab } from 'src/chat/models/colab.model';
+import { Follow } from 'src/connection/models/follow.model';
+import { Like } from 'src/connection/models/like.model';
 
 export enum NotificationType {
   GENERAL = 'GENERAL',
@@ -38,6 +40,12 @@ export class Notification {
 
   @Prop({ required: false, type: Types.ObjectId, ref: Colab.name })
   colab: string;
+
+  @Prop({ required: false, type: Types.ObjectId, ref: Like.name })
+  like: string;
+
+  @Prop({ required: false, type: Types.ObjectId, ref: Follow.name })
+  follow: string;
 
   @Prop({ required: false, type: String })
   message: string;

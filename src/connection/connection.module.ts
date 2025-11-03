@@ -11,31 +11,39 @@ import { Follow, FollowSchema } from './models/follow.model';
 import { UserModule } from 'src/user/user.module';
 import { FollowService } from './follow.service';
 import { ChatModule } from 'src/chat/chat.module';
-import { NotificationModule } from 'src/notification/notification.module';
+import { LikeRepository } from './repositories/mongoose/like.repository.mongoose';
+import { LikeRepositoryInterface } from './repositories/abstract/like.repository-interface';
+import { LikeService } from './like.service';
+import { Like, LikeSchema } from './models/like.model';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Connection.name, schema: ConnectionSchema },
-      { name: Follow.name, schema: FollowSchema }
+      { name: Follow.name, schema: FollowSchema },
+      { name: Like.name, schema: LikeSchema },
     ]),
     UserModule,
     ChatModule,
-    NotificationModule
   ],
-  exports: [ConnectionService, FollowService],
+  exports: [ConnectionService, FollowService, LikeService],
   providers: [
-    ConnectionService, 
-    FollowService, 
+    ConnectionService,
+    FollowService,
+    LikeService,
     {
       provide: ConnectionRepositoryInterface,
       useClass: ConnectionRepository,
     },
     {
+      provide: LikeRepositoryInterface,
+      useClass: LikeRepository,
+    },
+    {
       provide: FollowRepositoryInterface,
       useClass: FollowRepository,
-    }
+    },
   ],
-  controllers: [ConnectionController]
+  controllers: [ConnectionController],
 })
 export class ConnectionModule {}
