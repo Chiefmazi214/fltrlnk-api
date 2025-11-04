@@ -4,11 +4,11 @@ import { UserService } from '../src/user/user.service';
 import { BusinessService } from '../src/business/business.service';
 import { RoleService } from '../src/user/role.service';
 import { AttachmentService } from '../src/attachment/attachment.service';
-import { BusinessType } from '../src/business/models/business.model';
 import { AttachmentType } from '../src/attachment/models/attachment.model';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as bcrypt from 'bcryptjs';
+import { BusinessType } from 'src/business/business.enum';
 
 interface BusinessData {
   'Business Name': string;

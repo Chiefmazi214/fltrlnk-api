@@ -13,7 +13,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 
 export class UpdateUserLocationDto {
@@ -54,50 +54,61 @@ export class SocialLinksDto {
 }
 
 export class UpdateUserDto {
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   displayName: string;
 
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   username: string;
 
+  @ApiPropertyOptional()
   @IsDateString()
   @IsOptional()
   dateOfBirth: string;
 
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   profileType: string;
 
+  @ApiPropertyOptional()
   @IsArray()
   @IsOptional()
   attributes: string[];
 
+  @ApiPropertyOptional()
   @IsObject()
   @IsOptional()
   @ValidateNested()
   @Type(() => UpdateUserLocationDto)
   location: UpdateUserLocationDto;
 
+  @ApiPropertyOptional()
   @IsEmail()
   @IsOptional()
   email: string;
 
+  @ApiPropertyOptional()
   @IsPhoneNumber()
   @IsOptional()
   phone: string;
 
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   biography: string;
 
+  @ApiPropertyOptional()
   @IsObject()
   @IsOptional()
   @ValidateNested()
   @Type(() => SocialLinksDto)
   social: SocialLinksDto;
 
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   expoPushToken: string;

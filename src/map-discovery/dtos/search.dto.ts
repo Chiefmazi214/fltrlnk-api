@@ -1,6 +1,6 @@
 import { IsEnum, IsLatitude, IsLongitude, IsNumber, IsOptional, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { BusinessType } from 'src/business/models/business.model';
+import { BusinessType } from 'src/business/business.enum';
 
 export class SearchDto {
     @IsEnum(['users', 'all', ...Object.values(BusinessType)])

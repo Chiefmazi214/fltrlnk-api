@@ -4,11 +4,11 @@ import { UserService } from '../src/user/user.service';
 import { BusinessService } from '../src/business/business.service';
 import { RoleService } from '../src/user/role.service';
 import { AuthService } from '../src/auth/auth.service';
-import { BusinessType } from '../src/business/models/business.model';
 import { GeocodingService } from './geocoding.service';
 import * as bcrypt from 'bcryptjs';
 import * as fs from 'fs';
 import * as path from 'path';
+import { BusinessType } from 'src/business/business.enum';
 
 interface BusinessData {
   "Business Name": string;

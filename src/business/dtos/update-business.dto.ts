@@ -1,5 +1,7 @@
-import { IsString, IsOptional, IsObject, ValidateNested, IsPhoneNumber, IsUrl, IsNumber, IsBoolean } from "class-validator";
+import { IsString, IsOptional, IsObject, ValidateNested, IsPhoneNumber, IsUrl, IsNumber, IsBoolean, IsEnum } from "class-validator";
 import { Type } from 'class-transformer';
+import { BusinessType } from "../business.enum";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 class WorkingHoursDto {
     @IsString()
@@ -15,27 +17,48 @@ class WorkingHoursDto {
 }
 
 export class UpdateBusinessDto {
+    @ApiPropertyOptional()
     @IsString()
     @IsOptional()
     companyName: string;
+
+    @ApiPropertyOptional()
+    @IsEnum(BusinessType)
+    @IsOptional()
+    businessType: BusinessType;
+
+    @ApiPropertyOptional()
+    @IsString()
+    @IsOptional()
+    category: string;
+
+    @ApiPropertyOptional()
+    @IsString()
+    @IsOptional()
+    niche: string;
     
+    @ApiPropertyOptional()
     @IsOptional()
     @IsPhoneNumber()
     phone: string;
 
+    @ApiPropertyOptional()
     @IsString()
     @IsOptional()
     @IsUrl()
     website: string;
 
+    @ApiPropertyOptional()
     @IsString()
     @IsOptional()
     miniProfileBio: string;
 
+    @ApiPropertyOptional()
     @IsString()
     @IsOptional()
     radarProfileBio: string;
 
+    @ApiPropertyOptional()
     @IsObject()
     @IsOptional()
     @ValidateNested()
@@ -50,14 +73,17 @@ export class UpdateBusinessDto {
         sunday?: WorkingHoursDto;
     };
 
+    @ApiPropertyOptional()
     @IsNumber()
     @IsOptional()
     minPrice: number;
 
+    @ApiPropertyOptional()
     @IsNumber()
     @IsOptional()
     maxPrice: number;
 
+    @ApiPropertyOptional()
     @IsBoolean()
     @IsOptional()
     mapDiscovery: boolean;

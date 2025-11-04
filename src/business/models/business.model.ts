@@ -1,14 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { HydratedDocument, Types, Schema as MongooseSchema } from "mongoose";
-
-export enum BusinessType {
-    FOOD_AND_BEVERAGE = 'food&beverage',
-    ACTIVITY = 'activity',
-    NIGHT_LIFE = 'night life',
-    HAIR_AND_BEAUTY = 'hair&beauty',
-    BODY_AND_WELLNESS = 'body&wellness',
-    SERVICES = 'services',
-}
+import { HydratedDocument, Types } from "mongoose";
+import { BusinessType } from "../business.enum";
 
 @Schema({ collection: "businesses", timestamps: true })
 export class Business {
@@ -32,6 +24,12 @@ export class Business {
 
     @Prop({ type: String, enum: Object.values(BusinessType) })
     businessType: BusinessType;
+
+    @Prop({ required: false, type: String })
+    category: string;
+    
+    @Prop({ required: false, type: String })
+    niche: string;
 
     @Prop({
         type: Map,
