@@ -23,6 +23,7 @@ import { PostModule } from './post/post.module';
 import { UserSettingModule } from './user-setting/user-setting.module';
 import { MapDiscoveryModule } from './map-discovery/map-discovery.module';
 import { NotificationModule } from './notification/notification.module';
+import { BoostModule } from './boost/boost.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { NotificationModule } from './notification/notification.module';
     UserSettingModule,
     MapDiscoveryModule,
     NotificationModule,
+    BoostModule,
   ],
   controllers: [AppController],
   providers: [AppService],
