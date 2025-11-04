@@ -3,10 +3,12 @@ import {
   IsBoolean,
   IsBooleanString,
   IsDateString,
+  IsEmail,
   IsEnum,
   IsNumber,
   IsObject,
   IsOptional,
+  IsPhoneNumber,
   IsString,
   ValidateNested,
 } from 'class-validator';
@@ -77,6 +79,18 @@ export class UpdateUserDto {
   @ValidateNested()
   @Type(() => UpdateUserLocationDto)
   location: UpdateUserLocationDto;
+
+  @IsEmail()
+  @IsOptional()
+  email: string;
+
+  @IsPhoneNumber()
+  @IsOptional()
+  phone: string;
+
+  @IsString()
+  @IsOptional()
+  biography: string;
 
   @IsObject()
   @IsOptional()
