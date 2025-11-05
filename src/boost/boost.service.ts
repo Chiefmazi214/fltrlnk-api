@@ -22,26 +22,6 @@ export class BoostService {
     private readonly configService: ConfigService,
   ) {}
 
-  create(createBoostDto: CreateBoostDto) {
-    return 'This action adds a new boost';
-  }
-
-  findAll() {
-    return `This action returns all boost`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} boost`;
-  }
-
-  update(id: number, updateBoostDto: UpdateBoostDto) {
-    return `This action updates a #${id} boost`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} boost`;
-  }
-
   // RevenueCat methods
   async createRevenueCat(createRevenueCatDto: CreateRevenueCatDto) {
     const revenueCat = new this.revenueCatModel(createRevenueCatDto);
@@ -55,21 +35,14 @@ export class BoostService {
     const revenueCat = await this.revenueCatModel.findOneAndUpdate(
       { revenuecatId },
       { features: updateRevenueCatDto.features },
-      { new: true, runValidators: true },
+      { new: true, runValidators: true, upsert: true },
     );
-
-    if (!revenueCat) {
-      throw new NotFoundException(
-        `RevenueCat plan with ID "${revenuecatId}" not found`,
-      );
-    }
 
     return revenueCat;
   }
 
   async getAllRevenueCatPlansWithFeatures() {
     try {
-      // Get RevenueCat API key from environment
       const apiKey = this.configService.get<string>('REVENUECAT_API_KEY');
 
       if (!apiKey) {
@@ -79,7 +52,6 @@ export class BoostService {
         return this.getPlansFromDatabaseOnly();
       }
 
-      // Fetch offerings (plans) from RevenueCat API
       const response = await firstValueFrom(
         this.httpService.get(`${this.revenueCatApiUrl}/offerings`, {
           headers: {
@@ -91,22 +63,14 @@ export class BoostService {
 
       const revenueCatOfferings = response.data.offerings || [];
 
-      // Fetch features from our database
-      const dbPlans = await this.revenueCatModel.find().exec();
+      const dbPlans = await this.revenueCatModel.find();
 
-      // Create a map of revenuecatId to features for quick lookup
-      const featuresMap = new Map(
-        dbPlans.map((plan) => [plan.revenuecatId, plan.features]),
-      );
-
-      // Map RevenueCat offerings with features from database
       const mappedPlans = [];
-
       for (const offering of revenueCatOfferings) {
         if (offering.packages) {
           for (const pkg of offering.packages) {
             const revenuecatId = pkg.identifier;
-            const features = featuresMap.get(revenuecatId) || [];
+            const features = dbPlans.find((plan) => plan.revenuecatId === revenuecatId)?.features || [];
 
             mappedPlans.push({
               revenuecatId,
@@ -144,32 +108,9 @@ export class BoostService {
   }
 
   private async getPlansFromDatabaseOnly() {
-    const revenueCatPlans = await this.revenueCatModel.find().exec();
+    const revenueCatPlans = await this.revenueCatModel.find();
 
-    return revenueCatPlans.map((plan) => ({
-      revenuecatId: plan.revenuecatId,
-      features: plan.features,
-      _id: plan._id,
-      createdAt: plan.createdAt,
-      updatedAt: plan.updatedAt,
-    }));
+    return revenueCatPlans;
   }
 
-  async getRevenueCatPlanByRevenuecatId(revenuecatId: string) {
-    const plan = await this.revenueCatModel.findOne({ revenuecatId }).exec();
-
-    if (!plan) {
-      throw new NotFoundException(
-        `RevenueCat plan with ID "${revenuecatId}" not found`,
-      );
-    }
-
-    return {
-      revenuecatId: plan.revenuecatId,
-      features: plan.features,
-      _id: plan._id,
-      createdAt: plan.createdAt,
-      updatedAt: plan.updatedAt,
-    };
-  }
 }
