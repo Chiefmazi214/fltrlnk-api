@@ -2,9 +2,9 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "src/app.module";
 import { BusinessService } from "src/business/business.service";
 import { UserService } from "src/user/user.service";
-import { BusinessType } from "src/business/models/business.model";
 import * as fs from 'fs';
 import * as path from 'path';
+import { BusinessType } from "src/business/business.enum";
 
 interface BusinessData {
   place_id: string;

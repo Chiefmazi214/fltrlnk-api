@@ -111,6 +111,9 @@ export class User {
   @Prop({ required: false, type: Types.ObjectId, ref: 'Attachment' })
   profileImage: any;
 
+  @Prop({ required: false })
+  biography: string
+
   @Prop({
     type: SocialLinks,
     required: false,

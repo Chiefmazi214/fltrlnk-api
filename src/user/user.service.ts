@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { UserRepositoryInterface } from './repositories/abstract/user.repository-interface';
 import { User, UserDocument } from './models/user.model';
 import { RoleService } from './role.service';
@@ -87,6 +92,29 @@ export class UserService {
     return this.userRepository.update(userId, { ...user });
   }
 
+  async validateEmailUniqueness(email: string, userId?: string) {
+    const user = await this.getUserByEmail(email);
+    if (user) {
+      if (userId && user._id.toString() === userId) {
+        return;
+      }
+
+      throw new ConflictException('Phone is already in use');
+    }
+  }
+
+  async validatePhoneUniqueness(phone: string, userId?: string) {
+    const user = await this.getUserByPhone(phone);
+
+    if (user) {
+      if (userId && user._id.toString() === userId) {
+        return;
+      }
+
+      throw new ConflictException('Email is already in use');
+    }
+  }
+
   async updateUserProfile(
     userId: string,
     user: UpdateUserDto,
@@ -99,7 +127,17 @@ export class UserService {
       attributes: user.attributes,
       social: user.social,
       expoPushToken: user.expoPushToken,
+      biography: user.biography,
     };
+
+    if (user.email) {
+      await this.validateEmailUniqueness(user.email, userId);
+      updatePayload.email = user.email;
+    }
+    if (user.phone) {
+      await this.validatePhoneUniqueness(user.phone, userId);
+      updatePayload.phone = user.phone;
+    }
 
     if (user.location) {
       updatePayload.location = {
@@ -194,8 +232,6 @@ export class UserService {
       limit: query.limit,
     };
   }
-
-  
 
   async getUserById(id: string): Promise<UserDocument> {
     let user = await this.userRepository.findById(id);
