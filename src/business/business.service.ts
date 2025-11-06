@@ -106,7 +106,7 @@ export class BusinessService {
       {
         path: 'user',
         select:
-          'username email profileImage attributes displayName location lifestyleInfo isOnline profileType businessType',
+          'username email profileImage attributes displayName location lifestyleInfo isOnline profileType businessType businessAddress',
       },
     ]);
     if (!business) {
