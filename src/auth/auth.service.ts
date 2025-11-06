@@ -56,7 +56,7 @@ export class AuthService {
         user.email,
         user.phone,
       );
-      console.log(verificationCode)
+    console.log(verificationCode);
     //   await this.mailService.sendMail({
     //     html: this.getVerificationEmailTemplate(verificationCode.code.toString()),
     //     subject: "Verify Your Email - Hustily",
@@ -75,11 +75,11 @@ export class AuthService {
       loginDto.phone,
       loginDto.email,
     );
-    if (!user) throw new UnauthorizedException();
+    if (!user) throw new UnauthorizedException('Invalid credentials');
     if (!user.password /* && user.googleProviderId */)
       throw new UnauthorizedException('Please login with google');
     const passwordTrue = await bcrypt.compare(loginDto.password, user.password);
-    if (!passwordTrue) throw new UnauthorizedException();
+    if (!passwordTrue) throw new UnauthorizedException('Invalid credentials');
     return this.jwtResponse(user);
   }
 
