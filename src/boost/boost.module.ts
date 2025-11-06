@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { HttpModule } from '@nestjs/axios';
 import { BoostService } from './boost.service';
 import { BoostController } from './boost.controller';
 import { RevenueCat, RevenueCatSchema } from './models/revenuecat.model';
@@ -10,10 +9,6 @@ import { RevenueCat, RevenueCatSchema } from './models/revenuecat.model';
     MongooseModule.forFeature([
       { name: RevenueCat.name, schema: RevenueCatSchema },
     ]),
-    HttpModule.register({
-      timeout: 5000,
-      maxRedirects: 5,
-    }),
   ],
   controllers: [BoostController],
   providers: [BoostService],
