@@ -86,31 +86,31 @@ export class AuthService {
   async sendEmailVerificationOtp(email: string) {
     const user = await this.userService.getUserByEmail(email);
     if (!user) throw new UnauthorizedException();
-    const verificationCode =
-      await this.verificationService.createVerificationCode(
-        VerificationCodeTypes.EMAIL,
-        email,
-        user.phone,
-      );
-    return { message: 'Email verification code sent' };
+    await this.verificationService.createVerificationCode(
+      VerificationCodeTypes.EMAIL,
+      email,
+      user.phone,
+    );
+
+    return { message: 'verification code sent' };
   }
 
   async sendPhoneVerificationOtp(phone: string) {
     const user = await this.userService.getUserByPhone(phone);
     if (!user) throw new UnauthorizedException();
-    const verificationCode =
-      await this.verificationService.createVerificationCode(
-        VerificationCodeTypes.PHONE,
-        user.email,
-        phone,
-      );
+    await this.verificationService.createVerificationCode(
+      VerificationCodeTypes.PHONE,
+      user.email,
+      phone,
+    );
+
     return { message: 'Phone verification code sent' };
   }
 
   async verifyEmail(verifyDto: VerifyDto) {
     const user = await this.userService.getUserByEmail(verifyDto.email);
     if (!user) throw new UnauthorizedException();
-    const updatedCode = await this.verificationService.verifyCode(
+    await this.verificationService.verifyCode(
       verifyDto.code.toString(),
       verifyDto.email,
       verifyDto.phone,
@@ -182,53 +182,14 @@ export class AuthService {
     return this.jwtResponse(newUser);
   }
 
-  // async update(userId: string, updateUserDto: UpdateUserDto) {
-  //   const userForUpdate = await this.userService.findOne({ _id: userId });
-
-  //   if (updateUserDto.password) {
-  //     updateUserDto.password = await this.hashPassword(updateUserDto.password);
-  //   }
-
-  //   if (updateUserDto.email && updateUserDto.email !== userForUpdate.email) {
-  //     const emailUniqueCheck = await this.userService.findOne({
-  //       email: updateUserDto.email,
-  //     });
-  //     if (emailUniqueCheck) {
-  //       throw new BadRequestException("Email already exist");
-  //     }
-  //     await this.userService.updateOne(userId, {
-  //       $set: { status: false },
-  //     });
-  //   }
-
-  //   const user = await this.userService.updateOne(userId, updateUserDto);
-
-  //   const verificationCode =
-  //     await this.verificationService.createVerificationCode(
-  //       VerificationCodeTypes.EMAIL_VERIFY,
-  //       updateUserDto.email
-  //     );
-
-  //   await this.mailService.sendMail({
-  //     html: this.getVerificationEmailTemplate(verificationCode.code.toString()),
-  //     subject: "Verify Your Email - Hustily",
-  //     to: updateUserDto.email,
-  //     text: `Your Hustily verification code is: ${verificationCode.code}`,
-  //     from: "Hustily Support <support@mg.hustily.com>",
-  //   });
-
-  //   return this.jwtResponse(user);
-  // }
-
   async sendForgetPasswordOtp(email: string, phone: string) {
     const user = await this.userService.getUserByPhoneOrEmail(phone, email);
     if (!user) throw new UnauthorizedException();
-    const passwordVerifyCode =
-      await this.verificationService.createVerificationCode(
-        VerificationCodeTypes.FORGOT_PASSWORD,
-        email,
-        phone,
-      );
+    await this.verificationService.createVerificationCode(
+      VerificationCodeTypes.FORGOT_PASSWORD,
+      email,
+      phone,
+    );
     const message = user.email
       ? `Verification code sent to ${user.email}`
       : `Verification code sent to ${user.phone}`;
@@ -243,12 +204,11 @@ export class AuthService {
     const isExist = await this.userService.getUserByEmail(email);
     if (isExist) throw new BadRequestException('Email already exist');
     await this.userService.updateUser(userId, { email });
-    const verificationCode =
-      await this.verificationService.createVerificationCode(
-        VerificationCodeTypes.EMAIL,
-        email,
-        user.phone,
-      );
+    await this.verificationService.createVerificationCode(
+      VerificationCodeTypes.EMAIL,
+      email,
+      user.phone,
+    );
     return {
       message: 'Email updated successfully',
     };

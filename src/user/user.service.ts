@@ -51,17 +51,17 @@ export class UserService {
   ): Promise<UserDocument> {
     const query: any = { $or: [] };
 
-    if (phone) {
-      query.$or.push({ phone });
-    }
+    // if (phone) {
+    //   query.$or.push({ phone });
+    // }
 
-    if (email) {
-      query.$or.push({ email });
-    }
+    // if (email) {
+    //   query.$or.push({ email });
+    // }
 
-    if (query.$or.length === 0) {
-      return null;
-    }
+    // if (query.$or.length === 0) {
+    //   return null;
+    // }
 
     return this.userRepository.findOne(query);
   }

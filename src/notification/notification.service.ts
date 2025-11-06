@@ -64,7 +64,7 @@ export class NotificationService {
         this.mailService.sendMail({
           email: user?.email,
           subject: input.title,
-          content: input.message,
+          html: `<p>${input.message}</p>`,
         });
       } else if (user?.expoPushToken) {
         await this.sendExpoPushNotification(

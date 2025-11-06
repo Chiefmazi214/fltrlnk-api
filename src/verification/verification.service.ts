@@ -5,14 +5,17 @@ import {
   VerificationCodeTypes,
 } from './models/verification-code.model';
 import { UserService } from 'src/user/user.service';
-import mongoose from 'mongoose';
+import { MailService } from 'src/notification/mail.service';
+import { SmsService } from 'src/notification/sms.service';
 
 @Injectable()
 export class VerificationService {
   constructor(
     @Inject(VerificationCodeRepositoryInterface)
     private readonly verificationCodeRepository: VerificationCodeRepositoryInterface,
+    private readonly mailService: MailService,
     private readonly userService: UserService,
+    private readonly smsService: SmsService,
   ) {}
 
   async createVerificationCode(
@@ -39,23 +42,21 @@ export class VerificationService {
       expiresAt,
       userId: user._id.toString(),
     });
-    // if(email && !phone){
-    //     const mail = new Mail();
-    //     mail.to = email;
-    //     mail.subject = "Verification Code";
-    //     mail.text = `Your verification code is ${code}`;
-    //     await this.mailService.sendMail(mail);
-    // }else if(phone && !email){
-    //     await this.smsService.sendOtp(phone, code);
-    // }else if(phone && email){
-    //     const mail = new Mail();
-    //     mail.to = email;
-    //     mail.subject = "Verification Code";
-    //     mail.text = `Your verification code is ${code}`;
-    //     await this.mailService.sendMail(mail);
-    // }else{
-    //     throw new BadRequestException("Invalid input");
-    // }
+    if (email) {
+      await this.mailService.sendMail({
+        email: email,
+        subject: 'Verification Code',
+        html: `<p>Your verification code is <b>${code}</b>. It will expire in 5 minutes.</p>`,
+      });
+    } else if (phone) {
+      await this.smsService.sendSms({
+        to: phone,
+        content: `Your verification code is ${code}`,
+      });
+    } else {
+      throw new BadRequestException('Invalid input');
+    }
+
     return verificationCode;
   }
 

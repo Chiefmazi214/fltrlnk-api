@@ -20,7 +20,6 @@ export class MailService {
         to: sanitizeEmailForDevelopment(input.email),
         subject: input.subject,
         html: input.html,
-        context: input,
       });
     } catch (error) {
       this.logger.log('Error sending subscription renewal email', error);

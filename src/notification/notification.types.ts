@@ -1,6 +1,10 @@
 export interface ISendMail {
   email: string;
   subject: string;
-  content?: string;
   html?: string;
+}
+
+export interface ISendSms {
+  to: string;
+  content?: string;
 }

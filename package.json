@@ -50,6 +50,7 @@
     "ejs": "^3.1.10",
     "expo-server-sdk": "^4.0.0",
     "mongoose": "^8.13.1",
+    "nestjs-twilio": "^4.4.0",
     "passport": "^0.7.0",
     "passport-facebook": "^3.0.0",
     "passport-google-oauth20": "^2.0.0",
