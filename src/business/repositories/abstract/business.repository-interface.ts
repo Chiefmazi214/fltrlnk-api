@@ -12,6 +12,7 @@ export interface BusinessRepositoryInterface
     businessType: string,
     page: number,
     limit: number,
+    searchQuery?: string,
   ): Promise<{ data: BusinessDocument[]; total: number }>;
   findNearbyByName(
     latitude: number,
@@ -25,5 +26,10 @@ export interface BusinessRepositoryInterface
     name: string,
     page: number,
     limit: number,
+  ): Promise<{ data: BusinessDocument[]; total: number }>;
+  getAll(
+    page: number,
+    limit: number,
+    searchQuery?: string,
   ): Promise<{ data: BusinessDocument[]; total: number }>;
 }

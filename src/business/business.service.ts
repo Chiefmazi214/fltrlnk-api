@@ -127,8 +127,38 @@ export class BusinessService {
 
   async getBusinesses(
     paginationDto: PaginationDto,
+    searchQuery?: string,
   ): Promise<PaginatedResultDto<Business>> {
     const { page = 1, limit = 10 } = paginationDto;
+
+    // Use the new getAll method if searchQuery is provided
+    if (searchQuery) {
+      const { data, total } = await this.businessRepository.getAll(page, limit, searchQuery);
+
+      // Fetch attachments for each business
+      const businessesWithAttachments = await Promise.all(
+        data.map(async (business: any) => {
+          if (business.user && business.user._id) {
+            const attachments = await this.attachmentService.getAttachmentsByUser(
+              business.user._id.toString(),
+            );
+            return {
+              ...business,
+              attachments,
+            };
+          }
+          return business;
+        }),
+      );
+
+      return {
+        data: businessesWithAttachments as any,
+        total,
+        page,
+        limit,
+      };
+    }
+
     const skip = (page - 1) * limit;
     const [businesses, total] = await Promise.all([
       this.businessRepository.findAll(
@@ -176,6 +206,7 @@ export class BusinessService {
     businessType: string,
     page: number,
     limit: number,
+    searchQuery?: string,
   ): Promise<PaginatedResultDto<BusinessDocument>> {
     console.log({
       latitude,
@@ -184,6 +215,7 @@ export class BusinessService {
       businessType,
       page,
       limit,
+      searchQuery,
     });
     const { data, total } = await this.businessRepository.findNearby(
       latitude,
@@ -192,6 +224,7 @@ export class BusinessService {
       businessType,
       page,
       limit,
+      searchQuery,
     );
     console.log('@1...data.', data.length);
     console.log('@2...total.', total);
@@ -245,4 +278,5 @@ export class BusinessService {
       limit,
     };
   }
+
 }

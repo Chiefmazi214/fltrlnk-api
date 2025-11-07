@@ -1,4 +1,4 @@
-import { IsEnum, IsLatitude, IsLongitude, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsEnum, IsLatitude, IsLongitude, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { BusinessType } from 'src/business/business.enum';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -38,4 +38,9 @@ export class SearchDto {
     @Min(1)
     @Type(() => Number)
     limit?: number;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    searchQuery?: string;
 } 

@@ -23,7 +23,7 @@ export class MapDiscoveryService {
     searchDto: SearchDto,
     requesterUserId?: string,
   ): Promise<PaginatedResultDto<any>> {
-    const { type, latitude, longitude, mil, page = 1, limit = 10 } = searchDto;
+    const { type, latitude, longitude, mil, page = 1, limit = 10, searchQuery } = searchDto;
     console.log('Request Incoming Time ', new Date().toISOString());
     console.log('@1....i am calling from mobile side...', searchDto);
 
@@ -36,6 +36,7 @@ export class MapDiscoveryService {
         page,
         limit,
         requesterUserId,
+        searchQuery,
       );
       // Convert Mongoose documents to plain objects
       result.data = result.data.map((item: any) =>
@@ -50,8 +51,8 @@ export class MapDiscoveryService {
 
       // Fetch both individuals and businesses
       const [individualsResult, businessesResult] = await Promise.all([
-        this.individualService.getIndividuals({ page, limit }),
-        this.businessService.getBusinesses({ page, limit }),
+        this.individualService.getIndividuals({ page, limit }, searchQuery),
+        this.businessService.getBusinesses({ page, limit }, searchQuery),
       ]);
 
       // Combine the data from both results and convert to plain objects
@@ -94,6 +95,7 @@ export class MapDiscoveryService {
         type,
         page,
         limit,
+        searchQuery,
       );
       // Convert Mongoose documents to plain objects
       result.data = result.data.map((item: any) =>

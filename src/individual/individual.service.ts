@@ -106,8 +106,36 @@ export class IndividualService {
 
   async getIndividuals(
     paginationDto: PaginationDto,
+    searchQuery?: string,
   ): Promise<PaginatedResultDto<Individual>> {
     const { page = 1, limit = 10 } = paginationDto;
+
+    // Use the new getAll method if searchQuery is provided
+    if (searchQuery) {
+      const { data, total } = await this.individualRepository.getAll(page, limit, searchQuery);
+
+      // Fetch attachments for each individual
+      const individualsWithAttachments = await Promise.all(
+        data.map(async (individual: any) => {
+          if (individual.user && individual.user._id) {
+            const attachments = await this.attachmentService.getAttachmentsByUser(individual.user._id.toString());
+            return {
+              ...individual,
+              attachments,
+            };
+          }
+          return individual;
+        })
+      );
+
+      return {
+        data: individualsWithAttachments as any,
+        total,
+        page,
+        limit,
+      };
+    }
+
     const skip = (page - 1) * limit;
     const [individuals, total] = await Promise.all([
       this.individualRepository.findAll(
@@ -279,6 +307,7 @@ export class IndividualService {
     page: number,
     limit: number,
     requesterUserId?: string,
+    searchQuery?: string,
   ): Promise<PaginatedResultDto<Individual>> {
     const { data, total } = await this.individualRepository.findNearby(
       latitude,
@@ -286,6 +315,7 @@ export class IndividualService {
       maxDistance,
       page,
       limit,
+      searchQuery,
     );
     const filteredData = requesterUserId
       ? data.filter(
@@ -343,4 +373,5 @@ export class IndividualService {
       limit,
     };
   }
+
 }
