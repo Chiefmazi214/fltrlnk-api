@@ -7,8 +7,10 @@ import { SearchIndividualDto } from './dtos/search-individual.dto';
 import { SearchIndividualByNameDto } from './dtos/search-individual-by-name.dto';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('map-discovery')
+@ApiBearerAuth()
 export class MapDiscoveryController {
     constructor(private readonly mapDiscoveryService: MapDiscoveryService) {}
 

@@ -101,18 +101,22 @@ export class MapDiscoveryService {
       );
     }
 
-    // if (requesterUserId && result.data && result.data.length > 0) {
-    //     const dataWithFollow = await Promise.all(result.data.map(async (item: any) => {
-    //         // For users: item.user._id, for businesses: item.user._id (owner)
-    //         const userId = item.user?._id?.toString();
-    //         let isFollowing = false;
-    //         if (userId) {
-    //             isFollowing = await this.followService.isFollowing(requesterUserId, userId);
-    //         }
-    //         return { ...item, isFollowing };
-    //     }));
-    //     return { ...result, data: dataWithFollow };
-    // }
+    if (requesterUserId && result.data && result.data.length > 0) {
+      const dataWithFollow = await Promise.all(
+        result.data.map(async (item: any) => {
+          const userId = item.user?._id?.toString();
+          let isFollowed = false;
+          if (userId && userId !== requesterUserId) {
+            isFollowed = await this.followService.isFollowing(
+              requesterUserId,
+              userId,
+            );
+          }
+          return { ...item, isFollowed };
+        }),
+      );
+      result.data = dataWithFollow;
+    }
 
     console.log(
       '@3....result...',
