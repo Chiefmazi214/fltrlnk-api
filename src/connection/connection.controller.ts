@@ -19,6 +19,7 @@ import { CheckFollowersDto } from './dtos/check-followers.dto';
 import { CommonParams } from 'src/common/dtos/common.dtos';
 import { LikeService } from './like.service';
 import { LikeParams } from './dtos/like.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('connection')
 export class ConnectionController {
@@ -30,14 +31,16 @@ export class ConnectionController {
 
   @Post('follow/:id')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async follow(@Req() req: Request, @Param('id') id: string) {
-    return this.followService.followUser(req.user._id, id);
+    return this.followService.followUser(req.user?._id, id);
   }
 
   @Post('unfollow/:id')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async unfollow(@Req() req: Request, @Param('id') id: string) {
-    return this.followService.unfollowUser(req.user._id, id);
+    return this.followService.unfollowUser(req.user?._id, id);
   }
 
   @Get('followers/:id')
@@ -60,13 +63,14 @@ export class ConnectionController {
 
   @Post('request/:id')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async request(
     @Req() req: Request,
     @Param('id') id: string,
     @Body() sendConnectionDto: SendConnectionDto,
   ) {
     return this.connectionService.sendConnectionRequest(
-      req.user._id,
+      req.user?._id,
       id,
       sendConnectionDto,
     );
@@ -74,95 +78,110 @@ export class ConnectionController {
 
   @Get('requests')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async getConnectionRequests(
     @Req() req: Request,
     @Query() paginationDto: PaginationDto,
   ) {
     return this.connectionService.getConnectionRequests(
-      req.user._id,
+      req.user?._id,
       paginationDto,
     );
   }
 
   @Post('requests/:id')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async acceptRequest(@Req() req: Request, @Param('id') id: string) {
-    return this.connectionService.acceptConnectionRequest(req.user._id, id);
+    return this.connectionService.acceptConnectionRequest(req.user?._id, id);
   }
 
   @Post('requests/:id/reject')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async rejectRequest(@Req() req: Request, @Param('id') id: string) {
-    return this.connectionService.rejectConnectionRequest(req.user._id, id);
+    return this.connectionService.rejectConnectionRequest(req.user?._id, id);
   }
 
   @Get('connections')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async getUserConnections(
     @Req() req: Request,
     @Query() paginationDto: PaginationDto,
   ) {
     return this.connectionService.getUserConnections(
-      req.user._id,
+      req.user?._id,
       paginationDto,
     );
   }
 
   @Get('relationship/:id')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async getRelationshipStatus(
     @Req() req: Request,
     @Param('id') targetUserId: string,
   ) {
     return this.connectionService.getRelationshipStatus(
-      req.user._id,
+      req.user?._id,
       targetUserId,
     );
   }
 
   @Get('requests/requester')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async getConnectionRequestsByRequester(@Req() req: Request) {
     return this.connectionService.getConnectionRequestsByRequester(
-      req.user._id,
+      req.user?._id,
     );
   }
 
   @Post('check')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async checkFollowers(
     @Req() req: Request,
     @Body() checkFollowersDto: CheckFollowersDto,
   ) {
     return this.followService.checkMultipleFollowers(
-      req.user._id,
+      req.user?._id,
       checkFollowersDto.userIds,
     );
   }
 
   @Post('like/:id')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async likeProfile(@Req() req: Request, @Param() params: CommonParams) {
-    return this.likeService.likeItem(req.user._id, params.id, 'profile');
+    return this.likeService.likeItem(req.user?._id, params.id, 'profile');
   }
 
   @Delete('like/:id')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async unlikeProfile(@Req() req: Request, @Param() params: CommonParams) {
-    return this.likeService.unlikeItem(req.user._id, params.id, 'profile');
+    return this.likeService.unlikeItem(req.user?._id, params.id, 'profile');
   }
 
   @Post('like/:id/post/:postId')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async likePost(
     @Req() req: Request,
     @Param() params: CommonParams,
     @Param('postId') postId: string,
   ) {
-    return this.likeService.likeItem(req.user._id, params.id, 'post', postId);
+    return this.likeService.likeItem(req.user?._id, params.id, 'post', postId);
   }
 
   @Delete('like/:id/post/:postId')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async unlikePost(@Req() req: Request, @Param() params: LikeParams) {
     return this.likeService.unlikeItem(
-      req.user._id,
+      req.user?._id,
       params.id,
       'post',
       params.postId,
