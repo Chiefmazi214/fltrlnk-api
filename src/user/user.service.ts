@@ -217,7 +217,7 @@ export class UserService {
     }
 
     const result = await this.userRepository.findWithPagination(
-      query,
+      queryBuilder,
       undefined,
       {
         page: query.page,
