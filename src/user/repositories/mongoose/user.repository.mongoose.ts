@@ -47,8 +47,10 @@ export class UserRepository
     populate: PopulationOptions[],
     pagination: PaginationDto,
   ): Promise<{ data: UserDocument[]; total: number }> {
-    const skip = (pagination.page - 1) * pagination.limit;
-    const limit = pagination.limit;
+    const page = pagination.page ?? 1
+    const limit = pagination.limit ?? 10
+
+    const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
       this.userModel
         .find(filter)

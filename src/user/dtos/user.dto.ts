@@ -121,19 +121,19 @@ export class ChangeBlockStatusInput {
 }
 
 export class GetUsersWithPaginationQueryInput extends PaginationDto {
-  @ApiProperty({ description: 'The search query', example: 'John Doe' })
+  @ApiPropertyOptional({ description: 'The search query', example: 'John Doe' })
   @IsString()
   @IsOptional()
   searchQuery?: string;
 
   //blocked
-  @ApiProperty({ description: 'Whether the user is blocked', example: true })
+  @ApiPropertyOptional({ description: 'Whether the user is blocked', example: true })
   @IsBooleanString()
   @IsOptional()
   blocked?: string;
 
   //email verified
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether the user is email verified',
     example: true,
   })
@@ -142,7 +142,7 @@ export class GetUsersWithPaginationQueryInput extends PaginationDto {
   emailVerified?: string;
 
   //phone verified
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether the user is phone verified',
     example: true,
   })
@@ -151,7 +151,7 @@ export class GetUsersWithPaginationQueryInput extends PaginationDto {
   phoneVerified?: string;
 
   //profile type
-  @ApiProperty({ description: 'The profile type', example: 'business' })
+  @ApiPropertyOptional({ description: 'The profile type', example: 'business' })
   @IsString()
   @IsOptional()
   profileType?: string;

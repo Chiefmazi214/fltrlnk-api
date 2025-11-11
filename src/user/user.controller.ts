@@ -37,8 +37,8 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  async getAllUsers() {
-    return this.userService.getAllUsers();
+  async getAllUsers(@Query() query: GetUsersWithPaginationQueryInput) {
+    return this.userService.getUsersWithPagination(query);
   }
 
   @Get('admin')
