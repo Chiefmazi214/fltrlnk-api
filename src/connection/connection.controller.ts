@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -20,7 +21,7 @@ import { CommonParams } from 'src/common/dtos/common.dtos';
 import { LikeService } from './like.service';
 import { LikeParams } from './dtos/like.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { LikeType } from './like.enum';
+import { ChangeFollowStatusDto, GetFollowersQueryDto } from './dtos/follow.dto';
 
 @Controller('connection')
 export class ConnectionController {
@@ -44,13 +45,25 @@ export class ConnectionController {
     return this.followService.unfollowUser(req.user?._id, id);
   }
 
+  // api for status
+  @Put('follow/:id/status')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async changeFollowStatus(
+    @Req() req: Request,
+    @Param() params: CommonParams,
+    @Body() changeFollowStatusDto: ChangeFollowStatusDto,
+  ) {
+    return this.followService.changeFollowStatus(req.user?._id, params.id, changeFollowStatusDto.status);
+  }
+
   @Get('followers/:id')
   async getFollowers(
     @Req() req: Request,
     @Param('id') id: string,
-    @Query() paginationDto: PaginationDto,
+    @Query() query: GetFollowersQueryDto,
   ) {
-    return this.followService.getFollowers(id, paginationDto);
+    return this.followService.getFollowers(id, query);
   }
 
   @Get('following/:id')
