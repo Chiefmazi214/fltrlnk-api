@@ -4,6 +4,8 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
 import { UserRepositoryInterface } from './repositories/abstract/user.repository-interface';
 import { User, UserDocument } from './models/user.model';
 import { RoleService } from './role.service';
@@ -21,9 +23,9 @@ import {
   LifestyleCategory,
   LifestyleInfoDocument,
 } from './models/lifestyle-info.model';
-import { Types } from 'mongoose';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { BusinessService } from 'src/business/business.service';
+import { Boost, BoostDocument } from 'src/boost/models/boost.model';
 
 @Injectable()
 export class UserService {
@@ -35,6 +37,8 @@ export class UserService {
     private readonly attachmentService: AttachmentService,
     private readonly lifestyleInfoService: LifestyleInfoService,
     private readonly businessService: BusinessService,
+    @InjectModel(Boost.name)
+    private readonly boostModel: Model<BoostDocument>,
   ) {}
 
   async getUserByEmail(email: string): Promise<UserDocument> {
@@ -220,6 +224,22 @@ export class UserService {
     }
     if (query.category) {
       queryBuilder.businessCategory = { $regex: query.category, $options: 'i' };
+    }
+
+    // Filter by tier (boost planType)
+    if (query.tier) {
+      const boosts = await this.boostModel.find({
+        planType: query.tier,
+      }).select('userId');
+
+      const userIds = boosts.map(boost => boost.userId);
+
+      if (userIds.length > 0) {
+        queryBuilder._id = { $in: userIds };
+      } else {
+        // If no boosts match the tier, return empty result
+        queryBuilder._id = { $in: [] };
+      }
     }
 
     const result = await this.userRepository.findWithPagination(

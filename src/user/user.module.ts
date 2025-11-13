@@ -20,6 +20,7 @@ import { BusinessService } from 'src/business/business.service';
 import { BusinessRepositoryInterface } from 'src/business/repositories/abstract/business.repository-interface';
 import { BusinessRepository } from 'src/business/repositories/mongoose/business.repository.mongoose';
 import { Business, BusinessSchema } from 'src/business/models/business.model';
+import { Boost, BoostSchema } from 'src/boost/models/boost.model';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { Business, BusinessSchema } from 'src/business/models/business.model';
       { name: Role.name, schema: RoleSchema },
       { name: LifestyleInfo.name, schema: LifestyleInfoSchema },
       { name: Business.name, schema: BusinessSchema },
+      { name: Boost.name, schema: BoostSchema },
     ]),
     StorageModule,
     AttachmentModule

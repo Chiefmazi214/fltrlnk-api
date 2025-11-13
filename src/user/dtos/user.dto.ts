@@ -169,6 +169,16 @@ export class GetUsersWithPaginationQueryInput extends PaginationDto {
   @IsString()
   @IsOptional()
   category?: string;
+
+  //tier (boost planType)
+  @ApiPropertyOptional({
+    description: 'The boost tier',
+    example: 'premium',
+    enum: ['pro', 'premium', 'enterprise']
+  })
+  @IsString()
+  @IsOptional()
+  tier?: string;
 }
 
 export class ChangeUserStatusInput {
