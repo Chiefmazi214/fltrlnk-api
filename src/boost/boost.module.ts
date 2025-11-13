@@ -3,11 +3,13 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { BoostService } from './boost.service';
 import { BoostController } from './boost.controller';
 import { RevenueCat, RevenueCatSchema } from './models/revenuecat.model';
+import { Boost, BoostSchema } from './models/boost.model';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: RevenueCat.name, schema: RevenueCatSchema },
+      { name: Boost.name, schema: BoostSchema },
     ]),
   ],
   controllers: [BoostController],

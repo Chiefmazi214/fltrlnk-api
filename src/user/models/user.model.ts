@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { Role } from './role.model';
 import { LifestyleInfo, LifestyleInfoDocument } from './lifestyle-info.model';
+import { UserStatus } from '../user.enum';
 
 @Schema({ _id: false })
 export class UserLocation {
@@ -53,8 +54,8 @@ export class User {
   @Prop({ required: false })
   name: string;
 
-  @Prop({ required: false, default: false })
-  blocked: boolean;
+  @Prop({ type: String, enum: UserStatus, default: UserStatus.ACTIVE })
+  status: UserStatus;
 
   @Prop({ required: false, unique: true, sparse: true })
   email: string;

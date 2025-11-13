@@ -9,7 +9,7 @@ import { User, UserDocument } from './models/user.model';
 import { RoleService } from './role.service';
 import { RoleEnum } from './models/role.model';
 import {
-  ChangeBlockStatusInput,
+  ChangeUserStatusInput,
   GetUsersWithPaginationQueryInput,
   UpdateUserDto,
 } from './dtos/user.dto';
@@ -203,9 +203,6 @@ export class UserService {
         { phone: { $regex: query.searchQuery, $options: 'i' } },
       ];
     }
-    if (query.blocked) {
-      queryBuilder.blocked = query.blocked === 'true';
-    }
     if (query.emailVerified) {
       queryBuilder.emailVerified = query.emailVerified === 'true';
     }
@@ -214,6 +211,15 @@ export class UserService {
     }
     if (query.profileType) {
       queryBuilder.profileType = query.profileType;
+    }
+    if (query.status) {
+      queryBuilder.status = query.status;
+    }
+    if (query.state) {
+      queryBuilder.businessState = { $regex: query.state, $options: 'i' };
+    }
+    if (query.category) {
+      queryBuilder.businessCategory = { $regex: query.category, $options: 'i' };
     }
 
     const result = await this.userRepository.findWithPagination(
@@ -370,7 +376,7 @@ export class UserService {
     return this.userRepository.delete(id);
   }
 
-  async changeBlockStatusById(id: string, input: ChangeBlockStatusInput) {
-    return this.userRepository.update(id, { blocked: input.blocked });
+  async updateUserStatusById(id: string, input: ChangeUserStatusInput) {
+    return this.userRepository.update(id, { status: input.status });
   }
 }

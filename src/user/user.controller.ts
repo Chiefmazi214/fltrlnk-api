@@ -14,7 +14,7 @@ import {
 import { UserService } from './user.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import {
-  ChangeBlockStatusInput,
+  ChangeUserStatusInput,
   GetUsersWithPaginationQueryInput,
   UpdateUserDto,
 } from './dtos/user.dto';
@@ -59,15 +59,15 @@ export class UserController {
     return this.userService.deleteUserById(params.id);
   }
 
-  @Put('block/:id')
+  @Put('status/:id')
   @UseGuards(AuthGuard)
   @Roles(RoleEnum.ADMIN)
   @ApiBearerAuth()
-  async changeBlockStatusById(
+  async updateUserStatusById(
     @Param() params: CommonParams,
-    @Body() input: ChangeBlockStatusInput,
+    @Body() input: ChangeUserStatusInput,
   ) {
-    return this.userService.changeBlockStatusById(params.id, input);
+    return this.userService.updateUserStatusById(params.id, input);
   }
 
   @Put('update')

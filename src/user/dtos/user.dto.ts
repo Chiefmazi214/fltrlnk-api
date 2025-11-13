@@ -15,6 +15,8 @@ import {
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
+import { ProfileType, UserStatus } from '../user.enum';
+import { BusinessType } from 'src/business/business.enum';
 
 export class UpdateUserLocationDto {
   @IsString()
@@ -126,12 +128,6 @@ export class GetUsersWithPaginationQueryInput extends PaginationDto {
   @IsOptional()
   searchQuery?: string;
 
-  //blocked
-  @ApiPropertyOptional({ description: 'Whether the user is blocked', example: true })
-  @IsBooleanString()
-  @IsOptional()
-  blocked?: string;
-
   //email verified
   @ApiPropertyOptional({
     description: 'Whether the user is email verified',
@@ -151,8 +147,32 @@ export class GetUsersWithPaginationQueryInput extends PaginationDto {
   phoneVerified?: string;
 
   //profile type
-  @ApiPropertyOptional({ description: 'The profile type', example: 'business' })
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
+  @IsEnum(ProfileType)
   profileType?: string;
+
+  //status
+  @ApiPropertyOptional()
+  @IsEnum(UserStatus)
+  @IsOptional()
+  status?: UserStatus
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  state?: string;
+
+  @ApiPropertyOptional()
+  @IsEnum(BusinessType)
+  @IsString()
+  @IsOptional()
+  category?: string;
+}
+
+export class ChangeUserStatusInput {
+  @ApiProperty({ description: 'The new status', example: UserStatus.ACTIVE })
+  @IsEnum(UserStatus)
+  status: UserStatus;
 }

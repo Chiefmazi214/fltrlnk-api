@@ -10,18 +10,17 @@ import mongoose from 'mongoose';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { UserSettingService } from 'src/user-setting/user-setting.service';
-import { UserSettingRepositoryInterface } from 'src/user-setting/repositories/abstract/user-setting.repository-interface';
 import { AttachmentService } from 'src/attachment/attachment.service';
 
 @Injectable()
 export class IndividualService {
   constructor(
     @Inject(IndividualRepositoryInterface)
-    private individualRepository: IndividualRepositoryInterface,
-    private userService: UserService,
-    private roleService: RoleService,
-    private userSettingService: UserSettingService,
-    private attachmentService: AttachmentService,
+    private readonly individualRepository: IndividualRepositoryInterface,
+    private readonly userService: UserService,
+    private readonly roleService: RoleService,
+    private readonly userSettingService: UserSettingService,
+    private readonly attachmentService: AttachmentService,
   ) {}
 
   async createIndividual(
