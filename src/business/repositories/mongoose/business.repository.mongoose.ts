@@ -9,7 +9,7 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
         super(businessModel);
     }
 
-    async findNearby(latitude: number, longitude: number, maxDistance: number, businessType: string, page: number, limit: number, searchQuery?: string): Promise<{ data: BusinessDocument[], total: number }> {
+    async findNearby(latitude: number, longitude: number, maxDistance: number, businessType: string | null, page: number, limit: number, searchQuery?: string): Promise<{ data: BusinessDocument[], total: number }> {
         const skip = (page - 1) * limit;
 
         const matchConditions: any = {
@@ -20,11 +20,13 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
                         maxDistance / 3963.2 // Convert miles to radians (Earth radius in miles)
                     ]
                 }
-            },
-            businessType
+            }
         };
 
-        // Add searchQuery filter if provided
+        if (businessType) {
+            matchConditions.businessType = businessType;
+        }
+
         if (searchQuery) {
             matchConditions.$or = [
                 { companyName: { $regex: searchQuery, $options: 'i' } },

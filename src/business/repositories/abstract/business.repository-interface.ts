@@ -9,7 +9,7 @@ export interface BusinessRepositoryInterface
     latitude: number,
     longitude: number,
     maxDistance: number,
-    businessType: string,
+    businessType: string | null,
     page: number,
     limit: number,
     searchQuery?: string,

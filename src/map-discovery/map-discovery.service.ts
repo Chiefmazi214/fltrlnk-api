@@ -49,10 +49,26 @@ export class MapDiscoveryService {
         limit,
       });
 
-      // Fetch both individuals and businesses
+      // Fetch both individuals and businesses using location-based filtering
       const [individualsResult, businessesResult] = await Promise.all([
-        this.individualService.getIndividuals({ page, limit }, searchQuery),
-        this.businessService.getBusinesses({ page, limit }, searchQuery),
+        this.individualService.findNearby(
+          latitude,
+          longitude,
+          mil,
+          page,
+          limit,
+          requesterUserId,
+          searchQuery,
+        ),
+        this.businessService.findNearby(
+          latitude,
+          longitude,
+          mil,
+          null, // null businessType means get all business types
+          page,
+          limit,
+          searchQuery,
+        ),
       ]);
 
       // Combine the data from both results and convert to plain objects
