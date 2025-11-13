@@ -2,6 +2,7 @@ import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { Post } from 'src/post/models/post.model';
 import { User } from 'src/user/models/user.model';
+import { LikeType } from '../like.enum';
 
 @Schema({ timestamps: true, collection: 'likes' })
 export class Like {
@@ -14,7 +15,6 @@ export class Like {
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
     ref: User.name,
   })
   targetUser: mongoose.Types.ObjectId;
@@ -22,10 +22,10 @@ export class Like {
   @Prop({
     type: String,
     required: true,
-    enum: ['profile', 'post'],
-    default: 'profile',
+    enum: LikeType,
+    default: LikeType.PROFILE,
   })
-  type: string;
+  type: LikeType;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,

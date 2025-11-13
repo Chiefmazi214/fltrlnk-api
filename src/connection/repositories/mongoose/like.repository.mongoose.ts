@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 import { Like, LikeDocument } from '../../models/like.model';
 import { LikeRepositoryInterface } from '../abstract/like.repository-interface';
 import { MongooseRepositoryBase } from 'src/common/repository/mongoose/mongoose.repository';
+import { LikeType } from 'src/connection/like.enum';
 
 @Injectable()
 export class LikeRepository
@@ -24,12 +25,13 @@ export class LikeRepository
 
   async hasLiked(
     userId: Types.ObjectId,
-    targetUser: Types.ObjectId,
-    type: string,
+    type: LikeType,
     targetId?: Types.ObjectId,
   ): Promise<boolean> {
     const like = await this.findOne({
-      // userId, targetUser, type, targetId
+      user: userId,
+      [type === LikeType.PROFILE ? 'targetUser' : 'post']: targetId,
+      type,
     });
     return !!like;
   }

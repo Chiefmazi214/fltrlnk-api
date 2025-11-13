@@ -4,6 +4,7 @@ import { LikeRepositoryInterface } from './repositories/abstract/like.repository
 import { NotificationService } from 'src/notification/notification.service';
 import { Like } from './models/like.model';
 import { NotificationType } from 'src/notification/models/notification.model';
+import { LikeType } from './like.enum';
 
 @Injectable()
 export class LikeService {
@@ -15,15 +16,13 @@ export class LikeService {
 
   async likeItem(
     userId: string,
-    targetUserId: string,
-    type: string,
-    postId?: string,
+    type: LikeType,
+    targetId?: string,
   ): Promise<Like> {
     const existing = await this.likeRepository.findOne({
       user: new Types.ObjectId(userId),
-      targetUser: new Types.ObjectId(targetUserId),
+      [type === LikeType.PROFILE ? 'targetUser' : 'post']: new Types.ObjectId(targetId),
       type,
-      postId: new Types.ObjectId(postId),
     });
     if (existing) {
       return existing;
@@ -31,17 +30,15 @@ export class LikeService {
 
     const like = await this.likeRepository.create({
       user: new Types.ObjectId(userId),
-      targetUser: new Types.ObjectId(targetUserId),
+      [type === LikeType.PROFILE ? 'targetUser' : 'post']: new Types.ObjectId(targetId),
       type: type,
-      post: new Types.ObjectId(postId),
     });
 
-    const itemType = type === 'profile' ? 'profile' : 'post';
     await this.notificationService.createNotification({
       type: NotificationType.LIKE,
-      message: `liked your ${itemType}`,
+      message: `liked your ${type}`,
       recipientId: userId?.toString(),
-      likeId: postId,
+      likeId: like._id.toString(),
     });
 
     return like;
@@ -49,34 +46,33 @@ export class LikeService {
 
   async unlikeItem(
     userId: string,
-    targetUserId: string,
-    type: string,
-    postId?: string,
+    type: LikeType,
+    targetId?: string,
   ): Promise<boolean> {
     return this.likeRepository.dislike({
       $or: [
         {
           user: new Types.ObjectId(userId),
-          targetUser: new Types.ObjectId(targetUserId),
+          [type === LikeType.PROFILE ? 'targetUser' : 'post']: new Types.ObjectId(targetId),
         },
         {
           user: new Types.ObjectId(userId),
-          post: new Types.ObjectId(postId),
+          [type === LikeType.PROFILE ? 'targetUser' : 'post']: new Types.ObjectId(targetId),
         },
       ],
     });
   }
 
-  async getLikes(targetId: string, type: string): Promise<Like[]> {
+  async getLikes(targetId: string, type: LikeType): Promise<Like[]> {
     return this.likeRepository.findAll({
       $or: [
         {
           targetUser: new Types.ObjectId(targetId),
-          type,
+          type: LikeType.PROFILE,
         },
         {
           post: new Types.ObjectId(targetId),
-          type,
+          type: LikeType.POST,
         },
       ],
     });
@@ -84,15 +80,13 @@ export class LikeService {
 
   async hasLiked(
     userId: string,
-    targetUserId: string,
-    type: string,
-    postId?: string,
+    targetId: string,
+    type: LikeType,
   ): Promise<boolean> {
     return this.likeRepository.hasLiked(
       new Types.ObjectId(userId),
-      new Types.ObjectId(targetUserId),
       type,
-      new Types.ObjectId(postId),
+      new Types.ObjectId(targetId),
     );
   }
 }

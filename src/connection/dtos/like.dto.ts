@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsMongoId, IsNotEmpty } from 'class-validator';
+import { IsEnum, IsNotEmpty } from 'class-validator';
 import { CommonParams } from 'src/common/dtos/common.dtos';
+import { LikeType } from '../like.enum';
 
 export class LikeParams extends CommonParams {
-  @ApiProperty({ description: 'The ID of the entity' })
-  @IsMongoId()
+  @ApiProperty({ description: 'The type of the entity' })
+  @IsEnum(LikeType)
   @IsNotEmpty()
-  postId: string;
+  type: LikeType;
 }

@@ -20,6 +20,7 @@ import { CommonParams } from 'src/common/dtos/common.dtos';
 import { LikeService } from './like.service';
 import { LikeParams } from './dtos/like.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { LikeType } from './like.enum';
 
 @Controller('connection')
 export class ConnectionController {
@@ -154,47 +155,34 @@ export class ConnectionController {
   @Post('like/:id')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  async likeProfile(@Req() req: Request, @Param() params: CommonParams) {
-    return this.likeService.likeItem(req.user?._id, params.id, 'profile');
+  async likeItem(
+    @Req() req: Request,
+    @Body() likeParams: LikeParams,
+    @Param() params: CommonParams,
+  ) {
+    return this.likeService.likeItem(req.user?._id, likeParams.type, params.id);
   }
 
   @Delete('like/:id')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  async unlikeProfile(@Req() req: Request, @Param() params: CommonParams) {
-    return this.likeService.unlikeItem(req.user?._id, params.id, 'profile');
-  }
-
-  @Post('like/:id/post/:postId')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  async likePost(
+  async unlikeItem(
     @Req() req: Request,
+    @Body() likeParams: LikeParams,
     @Param() params: CommonParams,
-    @Param('postId') postId: string,
   ) {
-    return this.likeService.likeItem(req.user?._id, params.id, 'post', postId);
-  }
-
-  @Delete('like/:id/post/:postId')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  async unlikePost(@Req() req: Request, @Param() params: LikeParams) {
     return this.likeService.unlikeItem(
       req.user?._id,
+      likeParams.type,
       params.id,
-      'post',
-      params.postId,
     );
   }
 
   @Get('likes/:id')
-  async getProfileLikes(@Param() params: CommonParams) {
-    return this.likeService.getLikes(params.id, 'profile');
-  }
-
-  @Get('likes/post/:id')
-  async getPostLikes(@Param() params: CommonParams) {
-    return this.likeService.getLikes(params.id, 'post');
+  async getLikes(
+    @Body() likeParams: LikeParams,
+    @Param() params: CommonParams,
+  ) {
+    return this.likeService.getLikes(params.id, likeParams.type);
   }
 }
