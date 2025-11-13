@@ -51,6 +51,7 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
             },
             {
                 $addFields: {
+                    randomOrder: { $rand: {} },
                     'user.businessId': {
                         $cond: {
                             if: { $eq: ['$user.profileType', 'business'] },
@@ -59,6 +60,9 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
                         }
                     }
                 }
+            },
+            {
+                $sort: { randomOrder: 1 }
             },
             {
                 $project: {
@@ -99,7 +103,7 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
             }
         ];
 
-        const [result] = await this.businessModel.aggregate(pipeline).exec();
+        const [result] = await this.businessModel.aggregate(pipeline as any).exec();
         const total = result.metadata[0]?.total || 0;
 
         return { data: result.data, total };

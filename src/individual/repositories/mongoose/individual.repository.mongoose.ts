@@ -49,6 +49,14 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
                 $match: matchConditions
             },
             {
+                $addFields: {
+                    randomOrder: { $rand: {} }
+                }
+            },
+            {
+                $sort: { randomOrder: 1 }
+            },
+            {
                 $project: {
                     _id: 1,
                     biography: 1,
@@ -77,7 +85,7 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
             }
         ];
 
-        const [result] = await this.individualModel.aggregate(pipeline).exec();
+        const [result] = await this.individualModel.aggregate(pipeline as any).exec();
         const total = result.metadata[0]?.total || 0;
 
         return { data: result.data, total, page, limit };
