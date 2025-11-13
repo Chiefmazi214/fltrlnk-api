@@ -27,7 +27,10 @@ export class Business {
 
     @Prop({ required: false, type: String })
     category: string;
-    
+
+    @Prop({ required: false, type: String })
+    state: string;
+
     @Prop({ required: false, type: String })
     niche: string;
 

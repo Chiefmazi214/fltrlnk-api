@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { AttachmentService } from 'src/attachment/attachment.service';
+import { GetBusinessesWithPaginationQueryInput } from './dtos/business.dto';
 
 @Injectable()
 export class BusinessService {
@@ -279,4 +280,48 @@ export class BusinessService {
     };
   }
 
+  async getBusinessesWithPagination(
+    query: GetBusinessesWithPaginationQueryInput,
+  ): Promise<PaginatedResultDto<BusinessDocument>> {
+    const queryBuilder: Record<string, any> = {};
+
+    if (query.searchQuery) {
+      queryBuilder.$or = [
+        { companyName: { $regex: query.searchQuery, $options: 'i' } },
+        { category: { $regex: query.searchQuery, $options: 'i' } },
+        { niche: { $regex: query.searchQuery, $options: 'i' } },
+      ];
+    }
+
+    if (query.category) {
+      queryBuilder.category = { $regex: query.category, $options: 'i' };
+    }
+
+    if (query.state) {
+      queryBuilder.state = { $regex: query.state, $options: 'i' };
+    }
+
+    const skip = (query.page - 1) * query.limit;
+    const [businesses, total] = await Promise.all([
+      this.businessRepository.findAll(
+        queryBuilder,
+        [
+          {
+            path: 'user',
+            select:
+              'username email profileImage attributes displayName location lifestyleInfo isOnline profileType businessType status',
+          },
+        ],
+        { skip, limit: query.limit },
+      ),
+      this.businessRepository.count(queryBuilder),
+    ]);
+
+    return {
+      data: businesses,
+      total,
+      page: query.page,
+      limit: query.limit,
+    };
+  }
 }

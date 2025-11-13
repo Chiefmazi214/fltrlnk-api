@@ -35,6 +35,11 @@ export class UpdateBusinessDto {
     @ApiPropertyOptional()
     @IsString()
     @IsOptional()
+    state: string;
+
+    @ApiPropertyOptional()
+    @IsString()
+    @IsOptional()
     niche: string;
     
     @ApiPropertyOptional()

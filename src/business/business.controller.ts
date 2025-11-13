@@ -15,10 +15,24 @@ import { CreateBusinessDto } from './dtos/create-business.dto';
 import { Request } from 'express';
 import { UpdateBusinessDto } from './dtos/update-business.dto';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
+import { GetBusinessesWithPaginationQueryInput } from './dtos/business.dto';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RoleEnum } from 'src/user/models/role.model';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('business')
 export class BusinessController {
   constructor(private readonly businessService: BusinessService) {}
+
+  @Get('admin')
+  @UseGuards(AuthGuard)
+  @Roles(RoleEnum.ADMIN)
+  @ApiBearerAuth()
+  async getBusinessesWithPagination(
+    @Query() query: GetBusinessesWithPaginationQueryInput,
+  ) {
+    return this.businessService.getBusinessesWithPagination(query);
+  }
 
   @Post()
   @UseGuards(AuthGuard)
