@@ -119,11 +119,9 @@ export class BusinessService {
       business.user._id.toString(),
     );
 
-    // Add attachments to the business object
-    return {
-      ...business.toObject(),
-      attachments,
-    } as any;
+    business['_doc'].attachments = attachments;
+    
+    return business
   }
 
   async getBusinesses(
