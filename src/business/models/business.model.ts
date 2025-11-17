@@ -62,6 +62,8 @@ export class Business {
     @Prop({ required: false, type: Boolean, default: true })
     mapDiscovery: boolean;
 
+    @Prop({ required: false, type: Boolean, default: false })
+    pregenerated: boolean;
 }
 
 export type BusinessDocument = HydratedDocument<Business>;

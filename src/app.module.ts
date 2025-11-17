@@ -24,6 +24,7 @@ import { UserSettingModule } from './user-setting/user-setting.module';
 import { MapDiscoveryModule } from './map-discovery/map-discovery.module';
 import { NotificationModule } from './notification/notification.module';
 import { BoostModule } from './boost/boost.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { BoostModule } from './boost/boost.module';
     MapDiscoveryModule,
     NotificationModule,
     BoostModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

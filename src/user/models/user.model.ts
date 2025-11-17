@@ -130,6 +130,9 @@ export class User {
   @Prop({ required: false, type: String })
   businessAddress: string;
 
+  @Prop({ required: false, type: Boolean, default: false })
+  pregenerated: boolean;
+
   @Prop({ required: false, type: String })
   businessCity: string;
   @Prop({ required: false, type: String })
