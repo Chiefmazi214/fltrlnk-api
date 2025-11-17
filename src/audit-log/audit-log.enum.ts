@@ -1,0 +1,31 @@
+export enum AuditAction {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  READ = 'read',
+  LOGIN = 'login',
+  LOGOUT = 'logout',
+  EXPORT = 'export',
+  IMPORT = 'import',
+  APPROVE = 'approve',
+  REJECT = 'reject',
+  SUSPEND = 'suspend',
+  ACTIVATE = 'activate',
+}
+
+export enum EntityType {
+  USER = 'user',
+  POST = 'post',
+  BUSINESS = 'business',
+  COMMENT = 'comment',
+  LIKE = 'like',
+  FOLLOW = 'follow',
+  CHAT = 'chat',
+  MESSAGE = 'message',
+  NOTIFICATION = 'notification',
+  BOOST = 'boost',
+  ROLE = 'role',
+  PERMISSION = 'permission',
+  ANALYTICS = 'analytics',
+  REPORT = 'report',
+}
