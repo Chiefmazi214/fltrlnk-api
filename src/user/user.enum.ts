@@ -10,5 +10,4 @@ export enum UserStatus {
 export enum ProfileType {
   BUSINESS = 'business',
   INDIVIDUAL = 'individual',
-  USER = 'user',
 }

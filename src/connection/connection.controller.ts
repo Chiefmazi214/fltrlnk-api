@@ -19,7 +19,7 @@ import { SendConnectionDto } from './dtos/send-connection.dto';
 import { CheckFollowersDto } from './dtos/check-followers.dto';
 import { CommonParams } from 'src/common/dtos/common.dtos';
 import { LikeService } from './like.service';
-import { LikeParams } from './dtos/like.dto';
+import { LikeInput } from './dtos/like.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { ChangeFollowStatusDto, GetFollowersQueryDto } from './dtos/follow.dto';
 
@@ -170,10 +170,10 @@ export class ConnectionController {
   @ApiBearerAuth()
   async likeItem(
     @Req() req: Request,
-    @Body() likeParams: LikeParams,
+    @Body() input: LikeInput,
     @Param() params: CommonParams,
   ) {
-    return this.likeService.likeItem(req.user?._id, likeParams.type, params.id);
+    return this.likeService.likeItem(req.user?._id, input.type, params.id);
   }
 
   @Delete('like/:id')
@@ -181,21 +181,21 @@ export class ConnectionController {
   @ApiBearerAuth()
   async unlikeItem(
     @Req() req: Request,
-    @Body() likeParams: LikeParams,
+    @Body() input: LikeInput,
     @Param() params: CommonParams,
   ) {
     return this.likeService.unlikeItem(
       req.user?._id,
-      likeParams.type,
+      input.type,
       params.id,
     );
   }
 
   @Get('likes/:id')
   async getLikes(
-    @Body() likeParams: LikeParams,
+    @Body() input: LikeInput,
     @Param() params: CommonParams,
   ) {
-    return this.likeService.getLikes(params.id, likeParams.type);
+    return this.likeService.getLikes(params.id, input.type);
   }
 }
