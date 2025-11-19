@@ -18,6 +18,15 @@ export class CategorySetting {
     @Prop({ type: Boolean, required: true })
     nightLife: boolean;
 }
+
+@Schema({_id: false})
+export class DiscoverySetting {
+    @Prop({ type: Boolean, required: true })
+    fltrScreen: boolean;
+
+    @Prop({ type: Boolean, required: true })
+    stratosphereScreen: boolean;
+}
     
 @Schema({ timestamps: true, collection: 'user-settings' })
 export class UserSetting {
@@ -29,6 +38,9 @@ export class UserSetting {
 
     @Prop({ type: CategorySetting, required: true })
     categorySetting: CategorySetting;
+
+    @Prop({ type: DiscoverySetting, required: false })
+    discovery: DiscoverySetting;
 
     @Prop({ type: Boolean, default: false })
     isNotificationEnabled: boolean;
