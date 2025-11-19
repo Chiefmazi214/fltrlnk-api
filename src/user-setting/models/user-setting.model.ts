@@ -5,7 +5,7 @@ export enum LifestyleInfoCategory {
     USERS = 'users',
     FOOD_AND_BEVERAGE = 'food&beverage',
     ACTIVITY = 'activity',
-    NIGHT_LIFE = 'night life',
+    NIGHT_LIFE = '`night_life`',
     HAIR_AND_BEAUTY = 'hair&beauty',
     BODY_AND_WELLNESS = 'body&wellness',
     SERVICES = 'services'
