@@ -9,7 +9,7 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
         super(businessModel);
     }
 
-    async findNearby(latitude: number, longitude: number, maxDistance: number, businessType: string | null, page: number, limit: number, searchQuery?: string): Promise<{ data: BusinessDocument[], total: number }> {
+    async findNearby(latitude: number, longitude: number, maxDistance: number, businessTypes: string[], page: number, limit: number, searchQuery?: string): Promise<{ data: BusinessDocument[], total: number }> {
         const skip = (page - 1) * limit;
 
         const matchConditions: any = {
@@ -23,8 +23,8 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
             }
         };
 
-        if (businessType) {
-            matchConditions.businessType = businessType;
+        if (businessTypes?.length) {
+            matchConditions.businessType = { $in: businessTypes as any}
         }
 
         if (searchQuery) {

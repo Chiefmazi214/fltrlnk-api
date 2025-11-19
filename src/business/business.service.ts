@@ -202,7 +202,7 @@ export class BusinessService {
     latitude: number,
     longitude: number,
     maxDistance: number,
-    businessType: string | null,
+    businessTypes: string[],
     page: number,
     limit: number,
     searchQuery?: string,
@@ -211,7 +211,7 @@ export class BusinessService {
       latitude,
       longitude,
       maxDistance,
-      businessType,
+      businessTypes,
       page,
       limit,
       searchQuery,
@@ -220,14 +220,14 @@ export class BusinessService {
       latitude,
       longitude,
       maxDistance,
-      businessType,
+      businessTypes,
       page,
       limit,
       searchQuery,
     );
     console.log('@1...data.', data.length);
     console.log('@2...total.', total);
-    console.log('@3...type', businessType);
+    console.log('@3...type', businessTypes);
     return {
       data,
       total,

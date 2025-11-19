@@ -27,6 +27,7 @@ export class MapDiscoveryService {
     console.log('Request Incoming Time ', new Date().toISOString());
     console.log('@1....i am calling from mobile side...', searchDto);
 
+    const businessTypes = type.split(',');
     let result: PaginatedResultDto<any>;
     if (type === 'users') {
       result = await this.individualService.findNearby(
@@ -108,7 +109,7 @@ export class MapDiscoveryService {
         latitude,
         longitude,
         mil,
-        type,
+        businessTypes,
         page,
         limit,
         searchQuery,
