@@ -1,5 +1,5 @@
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { MongooseRepositoryBase } from "src/common/repository/mongoose/mongoose.repository";
 import { UserSetting, UserSettingDocument } from "../../models/user-setting.model";
 import { UserSettingRepositoryInterface } from "../abstract/user-setting.repository-interface";
@@ -10,6 +10,6 @@ export class UserSettingRepository extends MongooseRepositoryBase<UserSettingDoc
     }
 
     async findByUserId(userId: string): Promise<UserSettingDocument> {
-        return this.userSettingModel.findOne({ user: userId }).exec();
+        return this.userSettingModel.findOne({ user: new Types.ObjectId(userId) }).exec();
     }
 } 
