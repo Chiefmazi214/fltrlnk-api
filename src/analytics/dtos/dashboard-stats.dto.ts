@@ -66,6 +66,31 @@ export class StateEntryDto {
   entries: number;
 }
 
+export class StateProgressDto {
+  @ApiProperty({ example: 'CA', description: 'State abbreviation' })
+  state: string;
+
+  @ApiProperty({ example: 12500, description: 'Number of entries for this state' })
+  entries: number;
+
+  @ApiProperty({ example: 62.5, description: 'Percentage progress (0-100)' })
+  percentage: number;
+
+  @ApiProperty({ example: 10000, description: 'Goal/milestone for this state' })
+  goal: number;
+}
+
+export class SweepstakesProgressResponseDto {
+  @ApiProperty({ example: 'Sweepstakes Progress by State' })
+  title: string;
+
+  @ApiProperty({ example: 'State-level milestone tracking' })
+  subtitle: string;
+
+  @ApiProperty({ type: [StateProgressDto] })
+  states: StateProgressDto[];
+}
+
 export class DashboardStatsDto {
   @ApiProperty({ type: MonthlyActiveUsersDto })
   monthlyActiveUsers: MonthlyActiveUsersDto;

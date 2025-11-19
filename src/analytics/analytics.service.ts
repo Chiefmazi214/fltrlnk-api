@@ -7,6 +7,8 @@ import {
   RevenueDto,
   SweepstakesProgressDto,
   StateEntryDto,
+  SweepstakesProgressResponseDto,
+  StateProgressDto,
 } from './dtos/dashboard-stats.dto';
 
 @Injectable()
@@ -55,12 +57,25 @@ export class AnalyticsService {
     };
   }
 
-  getSweepstakesProgress(): SweepstakesProgressDto {
+  getSweepstakesProgress(): SweepstakesProgressResponseDto {
     // TODO: Mock data, to be replaced with real aggregation later
+    const states: StateProgressDto[] = [
+      { state: 'CA', entries: 12500, percentage: 62.5, goal: 10000 },
+      { state: 'TX', entries: 8500, percentage: 85.0, goal: 5000 },
+      { state: 'FL', entries: 3200, percentage: 64.0, goal: 1000 },
+      { state: 'NY', entries: 2800, percentage: 56.0, goal: 1000 },
+      { state: 'IL', entries: 1500, percentage: 30.0, goal: 1000 },
+      { state: 'PA', entries: 1200, percentage: 24.0, goal: 1000 },
+      { state: 'OH', entries: 950, percentage: 95.0, goal: 1000 },
+      { state: 'GA', entries: 750, percentage: 75.0, goal: 1000 },
+      { state: 'NC', entries: 600, percentage: 60.0, goal: 1000 },
+      { state: 'MI', entries: 450, percentage: 45.0, goal: 1000 },
+    ];
+
     return {
-      current: 0,
-      goal: 5000,
-      percentage: '0%',
+      title: 'Sweepstakes Progress by State',
+      subtitle: 'State-level milestone tracking',
+      states,
     };
   }
 

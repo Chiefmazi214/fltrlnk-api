@@ -3,8 +3,8 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { AnalyticsService } from './analytics.service';
 import {
   DashboardStatsDto,
-  SweepstakesProgressDto,
   StateEntryDto,
+  SweepstakesProgressResponseDto,
 } from './dtos/dashboard-stats.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
@@ -33,13 +33,13 @@ export class AnalyticsController {
   @UseGuards(AuthGuard)
   @Roles(RoleEnum.ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get sweepstakes progress' })
+  @ApiOperation({ summary: 'Get sweepstakes progress by state' })
   @ApiResponse({
     status: 200,
-    description: 'Sweepstakes progress retrieved successfully',
-    type: SweepstakesProgressDto,
+    description: 'Sweepstakes progress by state retrieved successfully',
+    type: SweepstakesProgressResponseDto,
   })
-  getSweepstakesProgress(): SweepstakesProgressDto {
+  getSweepstakesProgress(): SweepstakesProgressResponseDto {
     return this.analyticsService.getSweepstakesProgress();
   }
 
