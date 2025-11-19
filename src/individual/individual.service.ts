@@ -199,8 +199,8 @@ export class IndividualService {
     const { page = 1, limit = 100 } = paginationDto;
     const skip = (page - 1) * limit;
 
-    let idsToUse: string[] = [];
-    console.log("@1......idsToUse....",idsToUse);
+    let categoriesToFilter: string[] = [];
+    console.log("@1......categoriesToFilter....",categoriesToFilter);
     if (!lifestyleInfoIds || lifestyleInfoIds.length === 0) {
       const userSetting =
         await this.userSettingService.getUserSettingByUserId(userId);
@@ -210,13 +210,13 @@ export class IndividualService {
         userSetting.lifestyleInfos &&
         userSetting.lifestyleInfos.length > 0
       ) {
-        idsToUse = userSetting.lifestyleInfos.map((id) => id.toString());
+        categoriesToFilter = userSetting.lifestyleInfos;
       }
     } else {
-      idsToUse = lifestyleInfoIds;
+      categoriesToFilter = lifestyleInfoIds;
     }
 
-    if (!idsToUse || idsToUse.length === 0) {
+    if (!categoriesToFilter || categoriesToFilter.length === 0) {
       const [individuals, total] = await Promise.all([
         this.individualRepository.findAll(
           {},
@@ -252,13 +252,17 @@ export class IndividualService {
         $unwind: '$user',
       },
       {
+        $lookup: {
+          from: 'lifestyle-info',
+          localField: 'user.lifestyleInfo',
+          foreignField: '_id',
+          as: 'user.lifestyleInfoPopulated',
+        },
+      },
+      {
         $match: {
-          'user.lifestyleInfo': {
-            $elemMatch: {
-              _id: {
-                $in: idsToUse.map((id) => new mongoose.Types.ObjectId(id)),
-              },
-            },
+          'user.lifestyleInfoPopulated.category': {
+            $in: categoriesToFilter,
           },
         },
       },
@@ -308,6 +312,15 @@ export class IndividualService {
     requesterUserId?: string,
     searchQuery?: string,
   ): Promise<PaginatedResultDto<Individual>> {
+    // Get user settings to filter by lifestyle categories
+    let categoriesToFilter: string[] = [];
+    if (requesterUserId) {
+      const userSetting = await this.userSettingService.getUserSettingByUserId(requesterUserId);
+      if (userSetting && userSetting.lifestyleInfos && userSetting.lifestyleInfos.length > 0) {
+        categoriesToFilter = userSetting.lifestyleInfos;
+      }
+    }
+
     const { data, total } = await this.individualRepository.findNearby(
       latitude,
       longitude,
@@ -315,6 +328,7 @@ export class IndividualService {
       page,
       limit,
       searchQuery,
+      categoriesToFilter,
     );
     const filteredData = requesterUserId
       ? data.filter(

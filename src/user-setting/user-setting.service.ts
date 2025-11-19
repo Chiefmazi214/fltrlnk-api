@@ -55,15 +55,12 @@ export class UserSettingService {
     const categorySetting = this.fillCategorySettingDefaults(
       updateUserSettingDto.categorySetting,
     );
-    const lifestyleInfos =
-      updateUserSettingDto.lifestyleInfos?.map(
-        (info) => new Types.ObjectId(info),
-      ) ?? [];
+   
     if (existingSetting) {
       return this.updateUserSetting(existingSetting._id.toString(), {
         ...updateUserSettingDto,
         user: new Types.ObjectId(userId),
-        lifestyleInfos,
+        lifestyleInfos: updateUserSettingDto.lifestyleInfos ?? [],
         categorySetting,
         discovery: {
           fltrScreen: updateUserSettingDto.discovery?.fltrScreen ?? false,
@@ -76,7 +73,7 @@ export class UserSettingService {
     return this.createUserSetting({
       ...updateUserSettingDto,
       user: new Types.ObjectId(userId),
-      lifestyleInfos,
+      lifestyleInfos: updateUserSettingDto.lifestyleInfos ?? [],
       categorySetting,
       discovery: {
         fltrScreen: updateUserSettingDto.discovery?.fltrScreen ?? false,

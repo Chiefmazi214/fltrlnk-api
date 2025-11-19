@@ -14,7 +14,7 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
         return this.individualModel.aggregate(pipeline).exec();
     }
 
-    async findNearby(latitude: number, longitude: number, maxDistance: number, page: number, limit: number, searchQuery?: string): Promise<PaginatedResultDto<Individual>> {
+    async findNearby(latitude: number, longitude: number, maxDistance: number, page: number, limit: number, searchQuery?: string, lifestyleCategories?: string[]): Promise<PaginatedResultDto<Individual>> {
         const skip = (page - 1) * limit;
 
         const matchConditions: any = {
@@ -33,7 +33,7 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
             matchConditions['user.displayName'] = { $regex: searchQuery, $options: 'i' };
         }
 
-        const pipeline = [
+        const pipeline: any[] = [
             {
                 $lookup: {
                     from: 'users',
@@ -45,9 +45,35 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
             {
                 $unwind: '$user'
             },
-            {
+        ];
+
+        // Add lifestyle info lookup and category filtering if categories are provided
+        if (lifestyleCategories && lifestyleCategories.length > 0) {
+            pipeline.push(
+                {
+                    $lookup: {
+                        from: 'lifestyle-info',
+                        localField: 'user.lifestyleInfo',
+                        foreignField: '_id',
+                        as: 'user.lifestyleInfoPopulated'
+                    }
+                },
+                {
+                    $match: {
+                        ...matchConditions,
+                        'user.lifestyleInfoPopulated.category': {
+                            $in: lifestyleCategories
+                        }
+                    }
+                }
+            );
+        } else {
+            pipeline.push({
                 $match: matchConditions
-            },
+            });
+        }
+
+        pipeline.push(
             {
                 $addFields: {
                     randomOrder: { $rand: {} }
@@ -83,7 +109,7 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
                     ]
                 }
             }
-        ];
+        );
 
         const [result] = await this.individualModel.aggregate(pipeline as any).exec();
         const total = result.metadata[0]?.total || 0;

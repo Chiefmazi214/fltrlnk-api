@@ -3,9 +3,11 @@ import { UserSettingService } from './user-setting.service';
 import { UpdateUserSettingDto } from './dtos/update-user-setting.dto';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { Request } from 'express';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('user-settings')
 @UseGuards(AuthGuard)
+@ApiBearerAuth()
 export class UserSettingController {
     constructor(private readonly userSettingService: UserSettingService) {}
 
