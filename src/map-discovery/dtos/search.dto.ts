@@ -1,12 +1,11 @@
-import { IsEnum, IsLatitude, IsLongitude, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsLatitude, IsLongitude, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { BusinessType } from 'src/business/business.enum';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SearchDto {
     @ApiProperty()
-    @IsEnum(['users', 'all', ...Object.values(BusinessType)])
-    type: 'users' | 'all' | BusinessType;
+    @IsString()
+    type: string;
 
     @ApiProperty()
     @IsLatitude()

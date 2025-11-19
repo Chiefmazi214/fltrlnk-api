@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument, Types } from "mongoose";
-import { BusinessType } from "../business.enum";
 
 @Schema({ collection: "businesses", timestamps: true })
 export class Business {
@@ -22,8 +21,8 @@ export class Business {
     @Prop({ required: false, type: String })
     radarProfileBio: string;
 
-    @Prop({ type: String, enum: Object.values(BusinessType) })
-    businessType: BusinessType;
+    @Prop({ type: String })
+    businessType: string;
 
     @Prop({ required: false, type: String })
     category: string;

@@ -1,6 +1,5 @@
-import { IsString, IsOptional, IsObject, ValidateNested, IsPhoneNumber, IsUrl, IsNumber, IsBoolean, IsEnum } from "class-validator";
+import { IsString, IsOptional, IsObject, ValidateNested, IsPhoneNumber, IsUrl, IsNumber, IsBoolean } from "class-validator";
 import { Type } from 'class-transformer';
-import { BusinessType } from "../business.enum";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 class WorkingHoursDto {
@@ -23,9 +22,9 @@ export class UpdateBusinessDto {
     companyName: string;
 
     @ApiPropertyOptional()
-    @IsEnum(BusinessType)
+    @IsString()
     @IsOptional()
-    businessType: BusinessType;
+    businessType: string;
 
     @ApiPropertyOptional()
     @IsString()

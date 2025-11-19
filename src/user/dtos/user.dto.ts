@@ -16,7 +16,6 @@ import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { ProfileType, UserStatus } from '../user.enum';
-import { BusinessType } from 'src/business/business.enum';
 
 export class UpdateUserLocationDto {
   @IsString()
@@ -165,7 +164,6 @@ export class GetUsersWithPaginationQueryInput extends PaginationDto {
   state?: string;
 
   @ApiPropertyOptional()
-  @IsEnum(BusinessType)
   @IsString()
   @IsOptional()
   category?: string;
