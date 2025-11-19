@@ -26,6 +26,7 @@ import { NotificationModule } from './notification/notification.module';
 import { BoostModule } from './boost/boost.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { AuditLogModule } from './audit-log/audit-log.module';
     BoostModule,
     AnalyticsModule,
     AuditLogModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
