@@ -62,4 +62,24 @@ export class UserSettingService {
             categorySetting
         });
     }
+
+    async getAndCreateUserSettingByUserId(userId: string): Promise<UserSettingDocument> {
+        let userSetting = await this.userSettingRepository.findByUserId(userId);
+        if (!userSetting) {
+            return await this.createUserSetting({
+                user: new Types.ObjectId(userId),
+                categorySetting: {
+                    individual: false,
+                    foodAndBeverage: false,
+                    entertainmentVenues: false,
+                    outdoorActivity: false,
+                    nightLife: false
+                },
+                lifestyleInfos: [],
+                isNotificationEnabled: false,
+                isEmailNotificationEnabled: false,
+            });
+        }
+        return userSetting;
+    }
 }

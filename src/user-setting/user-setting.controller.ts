@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Req } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Req, Get } from '@nestjs/common';
 import { UserSettingService } from './user-setting.service';
 import { UpdateUserSettingDto } from './dtos/update-user-setting.dto';
 import { AuthGuard } from '../auth/guards/auth.guard';
@@ -15,5 +15,10 @@ export class UserSettingController {
         @Req() req: Request
     ) {
         return this.userSettingService.upsertUserSetting(req.user._id, updateUserSettingDto);
+    }
+
+    @Get()
+    async getUserSetting(@Req() req: Request) {
+        return this.userSettingService.getAndCreateUserSettingByUserId(req.user._id);
     }
 }
