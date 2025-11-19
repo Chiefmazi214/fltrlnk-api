@@ -4,6 +4,7 @@ import { CreatePostDto } from './dtos/create-post.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Request } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { CommonParams } from 'src/common/dtos/common.dtos';
 
 @Controller('post')
 export class PostController {
@@ -26,8 +27,8 @@ export class PostController {
     }
 
     @Get('user/:id')
-    getPostsByUser(@Param('id') id: string) {
-        return this.postService.getPostsByUser(id);
+    getPostsByUser(@Param() params: CommonParams) {
+        return this.postService.getPostsByUser(params.id);
     }
 
     @Post(':postId/attachments')
