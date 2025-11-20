@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { ChatRoom, ChatRoomSchema } from './models/chat-room.model';
@@ -15,6 +15,7 @@ import { WsAuthMiddleware } from 'src/auth/middleware/ws-auth.middleware';
 import { ColabRepositoryInterface } from './repositories/abstract/colab.repository-interface';
 import { ColabRepository } from './repositories/mongoose/colab.repository.mongoose';
 import { Colab, ColabSchema } from './models/colab.model';
+import { ConnectionModule } from 'src/connection/connection.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { Colab, ColabSchema } from './models/colab.model';
     ]),
     AuthModule,
     UserModule,
+    forwardRef(() => ConnectionModule),
   ],
   exports: [ChatService],
   providers: [
