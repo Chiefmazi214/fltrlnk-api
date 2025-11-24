@@ -22,7 +22,7 @@
 //   connectTimeout: 45000,
 //   path: '/socket.io/',
 //   serveClient: false,
-//   adapter: null,
+//   adapter: null, 
 //   allowUpgrades: true,
 //   maxHttpBufferSize: 1e8
 // })
