@@ -11,6 +11,8 @@ import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { UserSettingService } from 'src/user-setting/user-setting.service';
 import { AttachmentService } from 'src/attachment/attachment.service';
+import { BoostService } from 'src/boost/boost.service';
+import { BoostType } from 'src/boost/boost.enum';
 
 @Injectable()
 export class IndividualService {
@@ -21,6 +23,7 @@ export class IndividualService {
     private readonly roleService: RoleService,
     private readonly userSettingService: UserSettingService,
     private readonly attachmentService: AttachmentService,
+    private readonly boostService: BoostService,
   ) {}
 
   async createIndividual(
@@ -281,6 +284,7 @@ export class IndividualService {
           'user.displayName': 1,
           'user.location': 1,
           'user.lifestyleInfo': 1,
+          'user.isVerified': 1,
           'user.isOnline': 1,
         },
       },
@@ -294,9 +298,94 @@ export class IndividualService {
 
     const [result] = await this.individualRepository.aggregate(pipeline);
     const total = result.metadata[0]?.total || 0;
+    let data = result.data;
+
+    // LNKBoost: Insert boosted profiles at every 5th position
+    const activeBoost = await this.boostService.getActiveBoost(userId, BoostType.LNK);
+    if (activeBoost && activeBoost.count > 0) {
+      // Fetch boosted individuals (users with active LNK boosts)
+      const boostedPipeline = [
+        {
+          $lookup: {
+            from: 'activeboosts',
+            localField: 'user',
+            foreignField: 'user',
+            as: 'activeBoosts',
+          },
+        },
+        {
+          $match: {
+            'activeBoosts.type': BoostType.LNK,
+            'activeBoosts.count': { $gt: 0 },
+            'activeBoosts.startDate': {
+              $gte: new Date(Date.now() - 2 * 60 * 60 * 1000)
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'user',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+        {
+          $unwind: '$user',
+        },
+        {
+          $addFields: {
+            boostCount: { $arrayElemAt: ['$activeBoosts.count', 0] },
+          },
+        },
+        {
+          $sort: { boostCount: -1 },
+        },
+        {
+          $project: {
+            _id: 1,
+            biography: 1,
+            fltrlScreen: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            'user._id': 1,
+            'user.username': 1,
+            'user.email': 1,
+            'user.profileImage': 1,
+            'user.attributes': 1,
+            'user.displayName': 1,
+            'user.location': 1,
+            'user.lifestyleInfo': 1,
+            'user.isOnline': 1,
+            'user.isVerified': 1,
+            boostCount: 1,
+          },
+        },
+      ];
+
+      const boostedIndividuals = await this.individualRepository.aggregate(boostedPipeline);
+
+      if (boostedIndividuals && boostedIndividuals.length > 0) {
+        const finalData: any[] = [];
+        let boostedIndex = 0;
+
+        // Insert boosted profiles every 5th position
+        for (let i = 0; i < data.length; i++) {
+          finalData.push(data[i]);
+
+          // Insert a boosted profile at every 5th position (positions 4, 9, 14, etc.)
+          if ((i + 1) % 5 === 0 && boostedIndex < boostedIndividuals.length) {
+            finalData.push({ ...boostedIndividuals[boostedIndex], isBoosted: true });
+            boostedIndex++;
+          }
+        }
+
+        data = finalData;
+      }
+    }
 
     return {
-      data: result.data,
+      data,
       total,
       page,
       limit,

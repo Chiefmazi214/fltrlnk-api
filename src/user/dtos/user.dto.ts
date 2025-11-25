@@ -52,6 +52,18 @@ export class SocialLinksDto {
   @IsString()
   @IsOptional()
   facebook: string;
+
+  @IsString()
+  @IsOptional()
+  external1: string;
+
+  @IsString()
+  @IsOptional()
+  external2: string;
+
+  @IsString()
+  @IsOptional()
+  external3: string;
 }
 
 export class UpdateUserDto {

@@ -32,4 +32,5 @@ export interface BusinessRepositoryInterface
     limit: number,
     searchQuery?: string,
   ): Promise<{ data: BusinessDocument[]; total: number }>;
+  aggregate(pipeline: any[]): Promise<any[]>;
 }

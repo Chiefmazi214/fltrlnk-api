@@ -8,6 +8,7 @@ import {
   UseGuards,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { BoostService } from './boost.service';
@@ -15,7 +16,8 @@ import { UpdateRevenueCatInput } from './dto/revenuecat.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { RoleEnum } from 'src/user/models/role.model';
-import { RevenueCatWebhookPayload } from './dto/webhook.dto';
+import { CreateActiveBoostDto, RevenueCatWebhookPayload } from './dto/webhook.dto';
+import { Request } from 'express';
 
 @ApiTags('boost')
 @Controller('boost')
@@ -33,6 +35,12 @@ export class BoostController {
       revenuecatId,
       updateRevenueCatDto,
     );
+  }
+
+  @Get('')
+  @UseGuards(AuthGuard)
+  getUserBoosts(@Req() req: Request) {
+    return this.boostService.getUserBoosts(req.user?._id);
   }
 
   @Get('plans')
@@ -60,43 +68,18 @@ export class BoostController {
   @Post('webhook')
   @ApiOperation({ summary: 'RevenueCat webhook handler' })
   @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
-  async handleRevenueCatWebhook(@Body() webhookPayload: RevenueCatWebhookPayload) {
+  async handleRevenueCatWebhook(
+    @Body() webhookPayload: RevenueCatWebhookPayload,
+  ) {
     return this.boostService.handleWebhook(webhookPayload.event);
   }
 
-  // Active Boost endpoints
-  @Get('active/:userId')
+  @Post('active')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Get active boosts for a user' })
-  async getUserActiveBoosts(@Param('userId') userId: string) {
-    return this.boostService.getUserActiveBoosts(userId);
-  }
-
-  @Get('active')
-  @UseGuards(AuthGuard)
-  @Roles(RoleEnum.ADMIN)
-  @ApiOperation({ summary: 'Get all active boosts (Admin only)' })
-  async getAllActiveBoosts(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-  ) {
-    return this.boostService.getAllActiveBoosts(page, limit);
-  }
-
-  @Get('active/subscription/:subscriptionId')
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Get active boost by subscription ID' })
-  async getActiveBoostBySubscriptionId(
-    @Param('subscriptionId') subscriptionId: string,
-  ) {
-    return this.boostService.getActiveBoostBySubscriptionId(subscriptionId);
-  }
-
-  @Delete('active/:activeBoostId')
-  @UseGuards(AuthGuard)
-  @Roles(RoleEnum.ADMIN)
-  @ApiOperation({ summary: 'Delete active boost (Admin only)' })
-  async deleteActiveBoost(@Param('activeBoostId') activeBoostId: string) {
-    return this.boostService.deleteActiveBoost(activeBoostId);
+  async createActiveBoost(@Body() createActiveBoostDto: CreateActiveBoostDto, @Req() req: Request) {
+    await this.boostService.createActiveBoost(req.user?._id, createActiveBoostDto);
+    return {
+      message: 'Active boost created successfully',
+    };
   }
 }

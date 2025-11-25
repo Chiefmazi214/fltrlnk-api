@@ -97,7 +97,8 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
                     'user.displayName': 1,
                     'user.location': 1,
                     'user.lifestyleInfo': 1,
-                    'user.isOnline': 1
+                    'user.isOnline': 1,
+                    'user.isVerified': 1
                 }
             },
             {
@@ -163,7 +164,8 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
                     'user.displayName': 1,
                     'user.location': 1,
                     'user.lifestyleInfo': 1,
-                    'user.isOnline': 1
+                    'user.isVerified': 1,
+                    'user.isOnline': 1,
                 }
             },
             {
@@ -197,7 +199,7 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
                 .find(query)
                 .populate({
                     path: 'user',
-                    select: 'username email profileImage attributes displayName location lifestyleInfo isOnline'
+                    select: 'username email profileImage attributes displayName location lifestyleInfo isOnline isVerified'
                 })
                 .skip(skip)
                 .limit(limit)
@@ -251,7 +253,8 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
                     'user.location': 1,
                     'user.lifestyleInfo': 1,
                     'user.isOnline': 1,
-                    'user.businessType': 1
+                    'user.businessType': 1,
+                    'user.isVerified': 1
                 }
             },
             {

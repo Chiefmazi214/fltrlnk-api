@@ -4,8 +4,10 @@ import {
   IsOptional,
   IsNumber,
   IsBoolean,
+  IsEnum,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { BoostType } from '../boost.enum';
 
 export enum RevenueCatEventType {
   INITIAL_PURCHASE = 'INITIAL_PURCHASE',
@@ -92,8 +94,11 @@ export class SubscriptionData {
   entitlement_id?: string;
 }
 
-export interface RevenueCatWebhookPayload {
+export class RevenueCatWebhookPayload {
+  @ApiProperty()
   api_version: string;
+
+  @ApiProperty()
   event: RevenueCatWebhookEvent;
 }
 
@@ -133,40 +138,42 @@ export interface RevenueCatWebhookEvent {
   type: string;
 }
 
+// {
+//   "aliases": [
+//     "690e4c8acef93e20222f8a4e"
+//   ],
+//   "app_id": "appb4baf25504",
+//   "app_user_id": "690e4c8acef93e20222f8a4e",
+//   "commission_percentage": 0.3,
+//   "country_code": "PK",
+//   "currency": "PKR",
+//   "entitlement_id": null,
+//   "entitlement_ids": [
+//     "boosts",
+//     "boost_type",
+//   ],
+//   "renewal_number": null,
+//   "store": "APP_STORE",
+//   "subscriber_attributes": {
+//     "$attConsentStatus": {
+//       "updated_at_ms": 1764015722469,
+//       "value": "denied"
+//     }
+//   },
+//   "takehome_percentage": 0.7,
+//   "tax_percentage": 0,
+//   "transaction_id": "2000001064157032",
+//   "type": "NON_RENEWING_PURCHASE"
+// }
+
 export class CreateActiveBoostDto {
   @ApiProperty()
-  @IsString()
-  userId: string;
+  @IsEnum(BoostType)
+  type: BoostType;
 
   @ApiProperty()
-  @IsString()
-  revenuecatId: string;
-
-  @ApiProperty()
-  @IsString()
-  revenuecatSubscriptionId: string;
-
-  @ApiProperty()
-  @IsString()
-  planType: string;
-
-  @ApiProperty({ type: [String] })
-  features: string[];
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  startDate?: Date;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  endDate?: Date;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  expirationDate?: Date;
+  @IsNumber()
+  count: number;
 }
 
 export class UpdateActiveBoostDto {

@@ -5,26 +5,31 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { UpdateRevenueCatInput } from './dto/revenuecat.dto';
 import { RevenueCat, RevenueCatDocument } from './models/revenuecat.model';
+import { Boost, BoostDocument } from './models/boost.model';
 import {
-  Boost,
-  BoostDocument,
-  SubscriptionStatus,
-  PlanType,
-} from './models/boost.model';
-import { RevenueCatWebhookEvent } from './dto/webhook.dto';
+  CreateActiveBoostDto,
+  RevenueCatWebhookEvent,
+} from './dto/webhook.dto';
+import { ActiveBoost, ActiveBoostDocument } from './models/active-boost.model';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { ActiveBoostStatus, BoostType } from './boost.enum';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class BoostService {
   private readonly logger = new Logger(BoostService.name);
 
   constructor(
+    private readonly userService: UserService,
     @InjectModel(RevenueCat.name)
     private readonly revenueCatModel: Model<RevenueCatDocument>,
     @InjectModel(Boost.name)
     private readonly boostModel: Model<BoostDocument>,
+    @InjectModel(ActiveBoost.name)
+    private readonly activeBoostModel: Model<ActiveBoostDocument>,
   ) {}
 
   async deleteRevenueCat(revenuecatId: string) {
@@ -52,6 +57,45 @@ export class BoostService {
     return this.revenueCatModel.find();
   }
 
+  async createActiveBoost(userId: string, input: CreateActiveBoostDto) {
+    const boost = await this.boostModel.findOne({
+      user: new Types.ObjectId(userId),
+    });
+    if (!boost) {
+      throw new BadRequestException('User does not have any boosts');
+    }
+
+    if (boost.boosts?.[input.type] < input.count) {
+      throw new BadRequestException('User does not have enough boosts');
+    }
+
+    await this.activeBoostModel.create({
+      user: new Types.ObjectId(userId),
+      type: input.type,
+      count: input.count,
+      startDate: new Date(),
+    });
+
+    boost.boosts[input.type] -= input.count;
+    await boost.save();
+
+    return {
+      message: 'Active boost created successfully',
+    };
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async handleCron() {
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    await this.activeBoostModel.updateMany(
+      {
+        status: ActiveBoostStatus.ACTIVE,
+        startDate: { $lte: twoHoursAgo },
+      },
+      { status: ActiveBoostStatus.INACTIVE },
+    );
+  }
+
   // Webhook Handler
   async handleWebhook(event: RevenueCatWebhookEvent) {
     try {
@@ -63,49 +107,9 @@ export class BoostService {
         `Received webhook event: ${event.type} for user: ${event.app_user_id}`,
       );
 
-      const userId = event.app_user_id;
-      const productId = event.product_id;
-      const subscriptionId = event.original_transaction_id;
-
-      // Get the plan details from RevenueCat model
-      const plan = await this.revenueCatModel.findOne({
-        revenuecatId: productId,
-      });
-
-      if (!plan) {
-        this.logger.warn(`Plan not found for product ID: ${productId}`);
-        return { success: false, message: 'Plan not found' };
-      }
-
       switch (event.type) {
-        case 'INITIAL_PURCHASE':
-        case 'RENEWAL':
         case 'NON_RENEWING_PURCHASE':
-          await this.handleSubscriptionActivation(event, plan);
-          break;
-
-        case 'CANCELLATION':
-          await this.handleSubscriptionCancellation(event);
-          break;
-
-        case 'UNCANCELLATION':
-          await this.handleSubscriptionReactivation(event);
-          break;
-
-        case 'EXPIRATION':
-          await this.handleSubscriptionExpiration(event);
-          break;
-
-        case 'BILLING_ISSUE':
-          await this.handleBillingIssue(event);
-          break;
-
-        case 'SUBSCRIPTION_PAUSED':
-          await this.handleSubscriptionPause(event);
-          break;
-
-        case 'PRODUCT_CHANGE':
-          await this.handleProductChange(event, plan);
+          await this.boostPurchase(event);
           break;
 
         default:
@@ -122,247 +126,68 @@ export class BoostService {
     }
   }
 
-  private async handleSubscriptionActivation(
-    event: RevenueCatWebhookEvent,
-    plan: RevenueCatDocument,
-  ) {
-    const existingBoost = await this.boostModel.findOne({
-      revenuecatSubscriptionId: event.original_transaction_id,
-    });
-
-    const boostData = {
-      userId: event.app_user_id,
-      revenuecatId: event.product_id,
-      revenuecatSubscriptionId: event.original_transaction_id,
-      status: SubscriptionStatus.ACTIVE,
-      planType: this.determinePlanType(event.period_type),
-      features: plan.features,
-      startDate: new Date(event.purchased_at_ms),
-      expirationDate: event.expiration_at_ms
-        ? new Date(event.expiration_at_ms)
-        : undefined,
-      renewalDate: event.expiration_at_ms
-        ? new Date(event.expiration_at_ms)
-        : undefined,
-      willRenew: true,
-      isInTrialPeriod: event.offer_code.includes('trial') || false,
-      lastWebhookEventType: event.type,
-      lastWebhookReceivedAt: new Date(),
-      metadata: {
-        store: event.store,
-        transactionId: event.transaction_id,
-        countryCode: event.country_code,
-        currency: event.currency,
-        price: event.price,
-      },
-    };
-
-    if (existingBoost) {
-      await this.boostModel.findByIdAndUpdate(existingBoost._id, boostData);
-      this.logger.log(
-        `Updated active boost for subscription: ${event.original_transaction_id}`,
-      );
-    } else {
-      await this.boostModel.create(boostData);
-      this.logger.log(
-        `Created new active boost for subscription: ${event.original_transaction_id}`,
-      );
-    }
+  async getUserBoosts(userId: string) {
+    return this.boostModel.find({ user: new Types.ObjectId(userId) });
   }
 
-  private async handleSubscriptionCancellation(event: RevenueCatWebhookEvent) {
-    await this.boostModel.findOneAndUpdate(
-      { revenuecatSubscriptionId: event.original_transaction_id },
-      {
-        status: SubscriptionStatus.CANCELLED,
-        cancelledAt: new Date(),
-        willRenew: false,
-        lastWebhookEventType: event.type,
-        lastWebhookReceivedAt: new Date(),
-      },
-    );
-    this.logger.log(`Cancelled subscription: ${event.original_transaction_id}`);
-  }
-
-  private async handleSubscriptionReactivation(event: RevenueCatWebhookEvent) {
-    await this.boostModel.findOneAndUpdate(
-      { revenuecatSubscriptionId: event.original_transaction_id },
-      {
-        status: SubscriptionStatus.ACTIVE,
-        cancelledAt: null,
-        willRenew: true,
-        lastWebhookEventType: event.type,
-        lastWebhookReceivedAt: new Date(),
-      },
-    );
-    this.logger.log(
-      `Reactivated subscription: ${event.original_transaction_id}`,
+  async useBoost(userId: string, type: string, count: number) {
+    return this.boostModel.updateOne(
+      { user: new Types.ObjectId(userId) },
+      { $inc: { boosts: { [type]: -count } } },
     );
   }
 
-  private async handleSubscriptionExpiration(event: RevenueCatWebhookEvent) {
-    await this.boostModel.findOneAndUpdate(
-      { revenuecatSubscriptionId: event.original_transaction_id },
-      {
-        status: SubscriptionStatus.EXPIRED,
-        endDate: new Date(),
-        lastWebhookEventType: event.type,
-        lastWebhookReceivedAt: new Date(),
-      },
-    );
-    this.logger.log(`Expired subscription: ${event.original_transaction_id}`);
-  }
+  // get active boost
+  async getActiveBoost(userId: string, type: BoostType) {
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
 
-  private async handleBillingIssue(event: RevenueCatWebhookEvent) {
-    await this.boostModel.findOneAndUpdate(
-      { revenuecatSubscriptionId: event.original_transaction_id },
-      {
-        status: SubscriptionStatus.IN_BILLING_RETRY,
-        lastWebhookEventType: event.type,
-        lastWebhookReceivedAt: new Date(),
-      },
-    );
-    this.logger.log(
-      `Billing issue for subscription: ${event.original_transaction_id}`,
-    );
-  }
-
-  private async handleSubscriptionPause(event: RevenueCatWebhookEvent) {
-    await this.boostModel.findOneAndUpdate(
-      { revenuecatSubscriptionId: event.original_transaction_id },
-      {
-        status: SubscriptionStatus.PAUSED,
-        lastWebhookEventType: event.type,
-        lastWebhookReceivedAt: new Date(),
-      },
-    );
-    this.logger.log(`Paused subscription: ${event.original_transaction_id}`);
-  }
-
-  private async handleProductChange(
-    event: RevenueCatWebhookEvent,
-    newPlan: RevenueCatDocument,
-  ) {
-    await this.boostModel.findOneAndUpdate(
-      { revenuecatSubscriptionId: event.original_transaction_id },
-      {
-        revenuecatId: event.product_id,
-        features: newPlan.features,
-        planType: this.determinePlanType(event.period_type),
-        lastWebhookEventType: event.type,
-        lastWebhookReceivedAt: new Date(),
-      },
-    );
-    this.logger.log(
-      `Product changed for subscription: ${event.original_transaction_id}`,
-    );
-  }
-
-  private determinePlanType(periodType: string): PlanType {
-    if (!periodType) return PlanType.ENTERPRISE;
-
-    switch (periodType.toLowerCase()) {
-      case 'monthly':
-      case 'month':
-        return PlanType.PRO;
-      case 'yearly':
-      case 'annual':
-      case 'year':
-        return PlanType.PREMIUM;
-      default:
-        return PlanType.ENTERPRISE;
-    }
-  }
-
-  // Active Boost CRUD Operations
-  async getUserActiveBoosts(userId: string) {
-    return this.boostModel
-      .find({
-        userId,
-        status: {
-          $in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.IN_GRACE_PERIOD],
-        },
+    return this.activeBoostModel
+      .findOne({
+        user: new Types.ObjectId(userId),
+        startDate: { $gte: twoHoursAgo },
+        type: type,
+        count: { $gt: 0 },
       })
-      .populate('boostPlanId')
-      .sort({ createdAt: -1 });
+      .sort({ _id: -1 })
+      .limit(1)
+      .select('count');
   }
 
-  async getAllActiveBoosts(page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
+  async boostPurchase(event: RevenueCatWebhookEvent) {
+    let [count, type] = event.entitlement_ids; // type is boost_type (lnk, match, gps, loc, users, search)
 
-    const [boosts, total] = await Promise.all([
-      this.boostModel
-        .find()
-        .populate('revenuecatId')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      this.boostModel.countDocuments(),
-    ]);
+    const userId = event.app_user_id;
 
-    return {
-      data: boosts,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
-  }
-
-  async getActiveBoostBySubscriptionId(subscriptionId: string) {
-    const boost = await this.boostModel
-      .findOne({ revenuecatSubscriptionId: subscriptionId })
-      .populate('revenuecatId');
-
-    if (!boost) {
-      throw new NotFoundException(
-        `Active boost not found for subscription: ${subscriptionId}`,
-      );
+    if (!userId) {
+      throw new BadRequestException('User ID is required');
     }
 
-    return boost;
-  }
-
-  async deleteActiveBoost(activeBoostId: string) {
-    const boost = await this.boostModel.findByIdAndDelete(activeBoostId);
-
-    if (!boost) {
-      throw new NotFoundException(`Active boost not found: ${activeBoostId}`);
+    if (!count || !type) {
+      throw new BadRequestException('Invalid entitlement ids');
     }
 
-    return { success: true, message: 'Active boost deleted successfully' };
-  }
+    const countNumber = Number(count);
+    if (isNaN(countNumber)) {
+      throw new BadRequestException('Invalid count number');
+    }
 
-  // Check if user has active subscription
-  async hasActiveSubscription(userId: string): Promise<boolean> {
-    const activeBoost = await this.boostModel.findOne({
-      userId,
-      status: SubscriptionStatus.ACTIVE,
-      $or: [
-        { expirationDate: { $gt: new Date() } },
-        { expirationDate: null }, // Lifetime subscriptions
-      ],
+    if (!Object.values(BoostType).includes(type as BoostType)) {
+      throw new BadRequestException('Invalid type');
+    }
+
+    const boosts = await this.boostModel.findOne({
+      user: new Types.ObjectId(userId),
     });
+    if (!boosts) {
+      await this.boostModel.create({
+        user: new Types.ObjectId(userId),
+        boosts: { [type]: countNumber },
+      });
+    } else {
+      boosts.boosts[type] += countNumber;
+      await boosts.save();
+    }
 
-    return !!activeBoost;
-  }
-
-  // Get user's active features
-  async getUserActiveFeatures(userId: string): Promise<string[]> {
-    const activeBoosts = await this.boostModel.find({
-      userId,
-      status: SubscriptionStatus.ACTIVE,
-      $or: [{ expirationDate: { $gt: new Date() } }, { expirationDate: null }],
-    });
-
-    // Merge all features from active subscriptions
-    const features = new Set<string>();
-    activeBoosts.forEach((boost) => {
-      boost.features.forEach((feature) => features.add(feature));
-    });
-
-    return Array.from(features);
+    await this.userService.markAsVerifiedUser(userId);
   }
 }

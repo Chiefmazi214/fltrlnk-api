@@ -305,4 +305,8 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
 
         return { data: result.data, total };
     }
+
+    async aggregate(pipeline: any[]): Promise<any[]> {
+        return this.businessModel.aggregate(pipeline).exec();
+    }
 }

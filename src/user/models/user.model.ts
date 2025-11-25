@@ -47,6 +47,15 @@ export class SocialLinks {
 
   @Prop({ required: false })
   facebook: string;
+
+  @Prop({ required: false })
+  external1: string;
+
+  @Prop({ required: false })
+  external2: string;
+
+  @Prop({ required: false })
+  external3: string;
 }
 
 @Schema({ collection: 'users', timestamps: true })
@@ -74,6 +83,9 @@ export class User {
 
   @Prop({ required: false, default: false })
   phoneVerified: boolean;
+
+  @Prop({ required: false, default: false })
+  isVerified: boolean; // when it have some boosts
 
   @Prop({ required: false })
   password: string;

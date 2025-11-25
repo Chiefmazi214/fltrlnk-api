@@ -37,8 +37,6 @@ export class UserService {
     private readonly attachmentService: AttachmentService,
     private readonly lifestyleInfoService: LifestyleInfoService,
     private readonly businessService: BusinessService,
-    @InjectModel(Boost.name)
-    private readonly boostModel: Model<BoostDocument>,
   ) {}
 
   async getUserByEmail(email: string): Promise<UserDocument> {
@@ -86,6 +84,10 @@ export class UserService {
     console.log('@createUser..... ', JSON.stringify(user, undefined, 2));
     const newUser = await this.userRepository.create(user);
     return newUser;
+  }
+
+  async markAsVerifiedUser(userId: string) {
+    return this.userRepository.update(userId, { isVerified: true });
   }
 
   async updateUser(
@@ -226,21 +228,6 @@ export class UserService {
       queryBuilder.businessCategory = { $regex: query.category, $options: 'i' };
     }
 
-    // Filter by tier (boost planType)
-    if (query.tier) {
-      const boosts = await this.boostModel.find({
-        planType: query.tier,
-      }).select('userId');
-
-      const userIds = boosts.map(boost => boost.userId);
-
-      if (userIds.length > 0) {
-        queryBuilder._id = { $in: userIds };
-      } else {
-        // If no boosts match the tier, return empty result
-        queryBuilder._id = { $in: [] };
-      }
-    }
 
     const result = await this.userRepository.findWithPagination(
       queryBuilder,
