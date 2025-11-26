@@ -3,6 +3,7 @@ import {
   Inject,
   NotFoundException,
   ConflictException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -25,7 +26,7 @@ import {
 } from './models/lifestyle-info.model';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { BusinessService } from 'src/business/business.service';
-import { Boost, BoostDocument } from 'src/boost/models/boost.model';
+import { Business } from 'src/business/models/business.model';
 
 @Injectable()
 export class UserService {
@@ -36,8 +37,8 @@ export class UserService {
     private readonly storageService: StorageService,
     private readonly attachmentService: AttachmentService,
     private readonly lifestyleInfoService: LifestyleInfoService,
-    private readonly businessService: BusinessService,
-  ) {}
+    @Inject(forwardRef(() => BusinessService))  private readonly businessService: BusinessService,
+  ) { }
 
   async getUserByEmail(email: string): Promise<UserDocument> {
     return this.userRepository.findOne({ email });
@@ -228,7 +229,6 @@ export class UserService {
       queryBuilder.businessCategory = { $regex: query.category, $options: 'i' };
     }
 
-
     const result = await this.userRepository.findWithPagination(
       queryBuilder,
       undefined,
@@ -246,6 +246,15 @@ export class UserService {
     };
   }
 
+  mapBusiness(user: User, business: Business) {
+    if (!user.businessState) user.businessState = business.state;
+    if (!user.businessCategory) user.businessCategory = business.category;
+    if (!user.businessType) user.businessType = business.businessType;
+    if (!user.businessNiche) user.businessNiche = business.niche;
+
+    return user;
+  }
+
   async getUserById(id: string): Promise<UserDocument> {
     let user = await this.userRepository.findById(id);
     if (user) {
@@ -253,9 +262,10 @@ export class UserService {
         const business = await this.businessService.getBusiness(id);
         if (business) {
           // Convert to plain object and add businessId
-          const userObject = user.toObject();
+          let userObject = user.toObject();
           (userObject as any).businessId = (business as any)._id.toString();
-          return userObject as any;
+
+          return this.mapBusiness(userObject, business) as any;
         }
       } catch (error) {
         // Business not found for this user, which is fine

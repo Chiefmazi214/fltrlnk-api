@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { BusinessRepositoryInterface } from './repositories/abstract/business.repository-interface';
 import { CreateBusinessDto } from './dtos/create-business.dto';
 import { Business, BusinessDocument } from './models/business.model';
@@ -8,6 +8,7 @@ import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { AttachmentService } from 'src/attachment/attachment.service';
 import { GetBusinessesWithPaginationQueryInput } from './dtos/business.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class BusinessService {
@@ -15,7 +16,8 @@ export class BusinessService {
     @Inject(BusinessRepositoryInterface)
     private businessRepository: BusinessRepositoryInterface,
     private attachmentService: AttachmentService,
-  ) {}
+    @Inject(forwardRef(() => UserService)) private readonly userService: UserService
+  ) { }
 
   private convertWorkingHoursToMap(workingHours: any): Map<string, any> {
     if (!workingHours) return new Map();
@@ -78,6 +80,13 @@ export class BusinessService {
       throw new NotFoundException('Failed to update business');
     }
 
+    await this.userService.updateUser(updatedBusiness.user._id.toString(), {
+      businessType: updatedBusiness?.businessType,
+      businessNiche: updatedBusiness?.niche,
+      businessState: updatedBusiness?.state,
+      businessCategory: updatedBusiness?.category
+    });
+
     return updatedBusiness.populate(
       'user',
       'username email profileImage profileType',
@@ -120,7 +129,6 @@ export class BusinessService {
     );
 
     business['_doc'].attachments = attachments;
-    
     return business
   }
 
