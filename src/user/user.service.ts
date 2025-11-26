@@ -261,6 +261,15 @@ export class UserService {
     };
   }
 
+  mapBusiness(user: User, business: Business) {
+    if (!user.businessState) user.businessState = business.state;
+    if (!user.businessCategory) user.businessCategory = business.category;
+    if (!user.businessType) user.businessType = business.businessType;
+    if (!user.businessNiche) user.businessNiche = business.niche;
+
+    return user;
+  }
+
   async getUserById(id: string): Promise<UserDocument> {
     let user = await this.userRepository.findById(id);
     if (user) {
