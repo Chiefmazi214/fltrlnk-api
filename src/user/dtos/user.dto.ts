@@ -66,6 +66,13 @@ export class SocialLinksDto {
   external3: string;
 }
 
+export class UpdateReferralUsernameDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  referralUsername: string;
+}
+
 export class UpdateUserDto {
   @ApiPropertyOptional()
   @IsString()

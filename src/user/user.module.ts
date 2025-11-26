@@ -60,4 +60,4 @@ import { Boost, BoostSchema } from 'src/boost/models/boost.model';
   exports: [UserService, RoleService, LifestyleInfoService],
   controllers: [UserController, LifestyleInfoController, RoleController],
 })
-export class UserModule {}
+export class UserModule { }

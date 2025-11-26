@@ -9,7 +9,7 @@ export class UserSettingService {
   constructor(
     @Inject(UserSettingRepositoryInterface)
     private readonly userSettingRepository: UserSettingRepositoryInterface,
-  ) {}
+  ) { }
 
   // Helper to fill missing categorySetting fields with defaults
   private fillCategorySettingDefaults(input?: Partial<any>): any {
@@ -49,13 +49,14 @@ export class UserSettingService {
 
   async upsertUserSetting(
     userId: string,
+    businessType: 'individual' | 'business',
     updateUserSettingDto: UpdateUserSettingDto,
   ): Promise<UserSettingDocument> {
     const existingSetting = await this.getUserSettingByUserId(userId);
     const categorySetting = this.fillCategorySettingDefaults(
       updateUserSettingDto.categorySetting,
     );
-   
+
     if (existingSetting) {
       return this.updateUserSetting(existingSetting._id.toString(), {
         ...updateUserSettingDto,
@@ -76,15 +77,16 @@ export class UserSettingService {
       lifestyleInfos: updateUserSettingDto.lifestyleInfos ?? [],
       categorySetting,
       discovery: {
-        fltrScreen: updateUserSettingDto.discovery?.fltrScreen ?? false,
+        fltrScreen: updateUserSettingDto.discovery?.fltrScreen ?? businessType === 'business',
         stratosphereScreen:
-          updateUserSettingDto.discovery?.stratosphereScreen ?? false,
+          updateUserSettingDto.discovery?.stratosphereScreen ?? businessType === 'business',
       },
     });
   }
 
   async getAndCreateUserSettingByUserId(
     userId: string,
+    businessType: 'individual' | 'business',
   ): Promise<UserSettingDocument> {
     let userSetting = await this.userSettingRepository.findByUserId(userId, {
       path: 'lifestyleInfos',
@@ -101,8 +103,8 @@ export class UserSettingService {
           nightLife: false,
         },
         discovery: {
-          fltrScreen: false,
-          stratosphereScreen: false,
+          fltrScreen: businessType === 'business',
+          stratosphereScreen: businessType === 'business',
         },
         isNotificationEnabled: false,
         isEmailNotificationEnabled: false,

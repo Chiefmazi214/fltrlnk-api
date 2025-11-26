@@ -9,18 +9,18 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
 export class UserSettingController {
-    constructor(private readonly userSettingService: UserSettingService) {}
+    constructor(private readonly userSettingService: UserSettingService) { }
 
     @Post()
     async updateUserSetting(
         @Body() updateUserSettingDto: UpdateUserSettingDto,
         @Req() req: Request
     ) {
-        return this.userSettingService.upsertUserSetting(req.user._id, updateUserSettingDto);
+        return this.userSettingService.upsertUserSetting(req.user._id, req.user?.businessType, updateUserSettingDto);
     }
 
     @Get()
     async getUserSetting(@Req() req: Request) {
-        return this.userSettingService.getAndCreateUserSettingByUserId(req.user._id);
+        return this.userSettingService.getAndCreateUserSettingByUserId(req.user._id, req.user?.businessType);
     }
 }

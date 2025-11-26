@@ -20,4 +20,5 @@ export interface UserRepositoryInterface extends BaseRepository<UserDocument> {
     populate: PopulationOptions[],
     pagination: PaginationDto,
   ): Promise<{ data: UserDocument[]; total: number }>;
+  findByUsername(username: string, populate?: PopulationOptions[]): Promise<UserDocument | null>;
 }

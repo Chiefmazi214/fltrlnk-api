@@ -16,6 +16,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 import {
   ChangeUserStatusInput,
   GetUsersWithPaginationQueryInput,
+  UpdateReferralUsernameDto,
   UpdateUserDto,
 } from './dtos/user.dto';
 import { UpdateLifestyleInfoDto } from './dtos/update-lifestyle-info.dto';
@@ -34,7 +35,7 @@ import { CommonParams } from 'src/common/dtos/common.dtos';
 @ApiTags('Users')
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Get()
   async getAllUsers(@Query() query: GetUsersWithPaginationQueryInput) {
@@ -75,6 +76,16 @@ export class UserController {
   @ApiBearerAuth()
   async updateUser(@Body() user: UpdateUserDto, @Req() req: Request) {
     return this.userService.updateUserProfile(req.user._id, user);
+  }
+
+  @Put('update/referral-username')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async updateReferralUsername(
+    @Body() input: UpdateReferralUsernameDto,
+    @Req() req: Request,
+  ) {
+    return this.userService.updateReferralUsername(req.user?._id, input);
   }
 
   @Put('update/profile-image')

@@ -13,6 +13,7 @@ import { RoleEnum } from './models/role.model';
 import {
   ChangeUserStatusInput,
   GetUsersWithPaginationQueryInput,
+  UpdateReferralUsernameDto,
   UpdateUserDto,
 } from './dtos/user.dto';
 import { StorageService } from 'src/storage/storage.service';
@@ -27,6 +28,7 @@ import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { BusinessService } from 'src/business/business.service';
 import { ProfileType } from './user.enum';
 import { Business } from 'src/business/models/business.model';
+import { BoostService } from 'src/boost/boost.service';
 
 @Injectable()
 export class UserService {
@@ -37,7 +39,8 @@ export class UserService {
     private readonly storageService: StorageService,
     private readonly attachmentService: AttachmentService,
     private readonly lifestyleInfoService: LifestyleInfoService,
-    @Inject(forwardRef(() => BusinessService))  private readonly businessService: BusinessService,
+    private readonly boostService: BoostService,
+    @Inject(forwardRef(() => BusinessService)) private readonly businessService: BusinessService,
   ) { }
 
   async getUserByEmail(email: string): Promise<UserDocument> {
@@ -166,6 +169,28 @@ export class UserService {
       };
     }
     const updatedUser = await this.userRepository.update(userId, updatePayload);
+    return updatedUser;
+  }
+
+  async updateReferralUsername(
+    userId: string,
+    input: UpdateReferralUsernameDto,
+  ): Promise<UserDocument> {
+    if (!input.referralUsername) {
+      await this.boostService.assignReferralBoost(userId);
+      return
+    }
+
+    const referralUser = await this.userRepository.findByUsername(input.referralUsername);
+    if (!referralUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    const updatedUser = await this.userRepository.update(userId, {
+      referralUsername: input.referralUsername,
+    });
+    await this.boostService.assignReferralBoost(userId, referralUser._id.toString());
+
     return updatedUser;
   }
 

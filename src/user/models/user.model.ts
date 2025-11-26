@@ -155,6 +155,9 @@ export class User {
   businessType: string;
   @Prop({ required: false, type: String })
   businessNiche: string;
+
+  @Prop({ required: false, type: String })
+  referralUsername: string;
 }
 
 export type UserDocument = HydratedDocument<User>;

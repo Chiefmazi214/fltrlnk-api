@@ -8,8 +8,7 @@ import { PopulationOptions } from 'src/common/repository/abstract/base.repositor
 
 export class UserRepository
   extends MongooseRepositoryBase<UserDocument>
-  implements UserRepositoryInterface
-{
+  implements UserRepositoryInterface {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {
     super(userModel);
   }
@@ -62,5 +61,9 @@ export class UserRepository
     ]);
 
     return { data, total };
+  }
+
+  async findByUsername(username: string, populate?: PopulationOptions[]): Promise<UserDocument | null> {
+    return this.userModel.findOne({ username }).populate(populate).exec();
   }
 }

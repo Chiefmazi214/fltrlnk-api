@@ -16,7 +16,6 @@ import {
 import { ActiveBoost, ActiveBoostDocument } from './models/active-boost.model';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ActiveBoostStatus, BoostType } from './boost.enum';
-import { UserService } from 'src/user/user.service';
 import { Subscription, SubscriptionDocument, SubscriptionStatus } from './models/subscription.model';
 
 @Injectable()
@@ -24,7 +23,6 @@ export class BoostService {
   private readonly logger = new Logger(BoostService.name);
 
   constructor(
-    private readonly userService: UserService,
     @InjectModel(RevenueCat.name)
     private readonly revenueCatModel: Model<RevenueCatDocument>,
     @InjectModel(Boost.name)
@@ -33,7 +31,7 @@ export class BoostService {
     private readonly activeBoostModel: Model<ActiveBoostDocument>,
     @InjectModel(Subscription.name)
     private readonly subscriptionModel: Model<SubscriptionDocument>,
-  ) {}
+  ) { }
 
   async deleteRevenueCat(revenuecatId: string) {
     return this.revenueCatModel.findOneAndDelete({ revenuecatId });
@@ -217,6 +215,36 @@ export class BoostService {
       .sort({ _id: -1 })
       .limit(1)
       .select('count');
+  }
+
+  async assignReferralBoost(userId: string, referralUserId?: string) {
+    if (referralUserId) {
+      const referralUserBoosts = await this.boostModel.findOne({
+        user: new Types.ObjectId(referralUserId),
+      });
+      if (!referralUserBoosts) {
+        await this.boostModel.create({
+          user: new Types.ObjectId(referralUserId),
+          boosts: { users: 35 },
+        });
+      } else {
+        referralUserBoosts.boosts.users += 35;
+        await referralUserBoosts.save();
+      }
+    }
+
+    const userBoosts = await this.boostModel.findOne({
+      user: new Types.ObjectId(userId),
+    });
+    if (!userBoosts) {
+      await this.boostModel.create({
+        user: new Types.ObjectId(userId),
+        boosts: { users: 35 },
+      });
+    } else {
+      userBoosts.boosts.users += 35;
+      await userBoosts.save();
+    }
   }
 
   async boostPurchase(event: RevenueCatWebhookEvent) {

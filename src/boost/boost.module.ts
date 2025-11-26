@@ -25,4 +25,4 @@ import { SubscriptionService } from './services/subscription.service';
   providers: [BoostService, SubscriptionRepository, SubscriptionService],
   exports: [BoostService, SubscriptionService],
 })
-export class BoostModule {}
+export class BoostModule { }
