@@ -17,6 +17,7 @@ import { ActiveBoost, ActiveBoostDocument } from './models/active-boost.model';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ActiveBoostStatus, BoostType } from './boost.enum';
 import { UserService } from 'src/user/user.service';
+import { Subscription, SubscriptionDocument, SubscriptionStatus } from './models/subscription.model';
 
 @Injectable()
 export class BoostService {
@@ -30,6 +31,8 @@ export class BoostService {
     private readonly boostModel: Model<BoostDocument>,
     @InjectModel(ActiveBoost.name)
     private readonly activeBoostModel: Model<ActiveBoostDocument>,
+    @InjectModel(Subscription.name)
+    private readonly subscriptionModel: Model<SubscriptionDocument>,
   ) {}
 
   async deleteRevenueCat(revenuecatId: string) {
@@ -94,6 +97,69 @@ export class BoostService {
       },
       { status: ActiveBoostStatus.INACTIVE },
     );
+  }
+
+  @Cron('0 0 1 * *')
+  async addMonthlyBoostsForSubscribers() {
+    try {
+      this.logger.log('Starting monthly boost addition for subscribed users');
+
+      const activeSubscriptions = await this.subscriptionModel.find({
+        status: SubscriptionStatus.ACTIVE,
+      });
+
+      this.logger.log(`Found ${activeSubscriptions.length} active subscriptions`);
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const subscription of activeSubscriptions) {
+        try {
+          const userId = subscription.user;
+
+          const boost = await this.boostModel.findOne({ user: userId });
+
+          if (!boost) {
+            await this.boostModel.create({
+              user: userId,
+              boosts: {
+                lnk: 0,
+                match: 0,
+                gps: 0,
+                loc: 0,
+                users: 5,
+                search: 0,
+              },
+            });
+          } else {
+            boost.boosts.users += 5;
+            await boost.save();
+          }
+
+          successCount++;
+        } catch (error) {
+          failCount++;
+          this.logger.error(
+            `Failed to add boosts for subscription ${subscription._id}: ${error.message}`,
+            error.stack,
+          );
+        }
+      }
+
+      this.logger.log(
+        `Monthly boost addition completed. Success: ${successCount}, Failed: ${failCount}`,
+      );
+
+      return {
+        success: true,
+        processed: activeSubscriptions.length,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error in monthly boost addition: ${error.message}`,
+        error.stack,
+      );
+    }
   }
 
   // Webhook Handler
@@ -187,7 +253,5 @@ export class BoostService {
       boosts.boosts[type] += countNumber;
       await boosts.save();
     }
-
-    await this.userService.markAsVerifiedUser(userId);
   }
 }

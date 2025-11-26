@@ -5,8 +5,7 @@ import {
   ConflictException,
   forwardRef,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { UserRepositoryInterface } from './repositories/abstract/user.repository-interface';
 import { User, UserDocument } from './models/user.model';
 import { RoleService } from './role.service';
@@ -26,6 +25,7 @@ import {
 } from './models/lifestyle-info.model';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { BusinessService } from 'src/business/business.service';
+import { ProfileType } from './user.enum';
 import { Business } from 'src/business/models/business.model';
 
 @Injectable()
@@ -87,8 +87,21 @@ export class UserService {
     return newUser;
   }
 
-  async markAsVerifiedUser(userId: string) {
+  async markAsVerifiedBusinessUser(userId: string) {
+    const user = await this.userRepository.findById(userId);
+    if (user?.profileType === ProfileType.INDIVIDUAL) {
+      return;
+    }
+
     return this.userRepository.update(userId, { isVerified: true });
+  }
+
+  async markAsUnverifiedUser(userId: string) {
+    return this.userRepository.update(userId, { isVerified: false });
+  }
+
+  async findById(userId: string) {
+    return this.userRepository.findById(userId);
   }
 
   async updateUser(
