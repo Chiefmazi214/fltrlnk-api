@@ -172,6 +172,16 @@ export class UserService {
     return updatedUser;
   }
 
+  async generateUsername() {
+    const username = `fltr_${Math.floor(Math.random() * 20000)}`
+    const user = await this.userRepository.findByUsername(username);
+    if (user) {
+      return this.generateUsername();
+    }
+
+    return username;
+  }
+
   async updateReferralUsername(
     userId: string,
     input: UpdateReferralUsernameDto,

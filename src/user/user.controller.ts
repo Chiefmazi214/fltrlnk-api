@@ -88,6 +88,12 @@ export class UserController {
     return this.userService.updateReferralUsername(req.user?._id, input);
   }
 
+  @Get('generate-username')
+  async generateUsername() {
+    const username = await this.userService.generateUsername();
+    return { username };
+  }
+
   @Put('update/profile-image')
   @UseInterceptors(FileInterceptor('attachment'))
   @UseGuards(AuthGuard)
