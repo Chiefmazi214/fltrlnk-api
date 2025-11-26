@@ -64,7 +64,7 @@ export class UserSettingService {
         lifestyleInfos: updateUserSettingDto.lifestyleInfos ?? [],
         categorySetting,
         discovery: {
-          fltrScreen: updateUserSettingDto.discovery?.fltrScreen ?? false,
+          fltrScreen: updateUserSettingDto.discovery?.fltrScreen ?? true,
           stratosphereScreen:
             updateUserSettingDto.discovery?.stratosphereScreen ?? false,
         },
@@ -77,7 +77,7 @@ export class UserSettingService {
       lifestyleInfos: updateUserSettingDto.lifestyleInfos ?? [],
       categorySetting,
       discovery: {
-        fltrScreen: updateUserSettingDto.discovery?.fltrScreen ?? businessType === 'business',
+        fltrScreen: updateUserSettingDto.discovery?.fltrScreen ?? true,
         stratosphereScreen:
           updateUserSettingDto.discovery?.stratosphereScreen ?? businessType === 'business',
       },
@@ -103,7 +103,7 @@ export class UserSettingService {
           nightLife: false,
         },
         discovery: {
-          fltrScreen: businessType === 'business',
+          fltrScreen: true,
           stratosphereScreen: businessType === 'business',
         },
         isNotificationEnabled: false,
