@@ -5,8 +5,7 @@ import {
   ConflictException,
   forwardRef,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { UserRepositoryInterface } from './repositories/abstract/user.repository-interface';
 import { User, UserDocument } from './models/user.model';
 import { RoleService } from './role.service';
