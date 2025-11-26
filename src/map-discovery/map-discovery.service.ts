@@ -263,7 +263,6 @@ export class MapDiscoveryService {
           'user.location': 1,
           'user.lifestyleInfo': 1,
           'user.isOnline': 1,
-          'user.isVerified': 1,
           boostCount: 1,
         },
       },

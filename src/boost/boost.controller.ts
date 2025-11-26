@@ -18,11 +18,15 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { RoleEnum } from 'src/user/models/role.model';
 import { CreateActiveBoostDto, RevenueCatWebhookPayload } from './dto/webhook.dto';
 import { Request } from 'express';
+import { SubscriptionService } from './services/subscription.service';
 
 @ApiTags('boost')
 @Controller('boost')
 export class BoostController {
-  constructor(private readonly boostService: BoostService) {}
+  constructor(
+    private readonly boostService: BoostService,
+    private readonly subscriptionService: SubscriptionService,
+  ) {}
 
   @Put(':revenuecatId')
   @UseGuards(AuthGuard)
@@ -71,7 +75,23 @@ export class BoostController {
   async handleRevenueCatWebhook(
     @Body() webhookPayload: RevenueCatWebhookPayload,
   ) {
-    return this.boostService.handleWebhook(webhookPayload.event);
+    const event = webhookPayload.event;
+
+    // Route to appropriate service based on event type
+    const subscriptionEvents = [
+      'INITIAL_PURCHASE',
+      'RENEWAL',
+      'CANCELLATION',
+      'EXPIRATION',
+      'UNCANCELLATION',
+      'SUBSCRIPTION_PAUSED',
+    ];
+
+    if (subscriptionEvents.includes(event.type)) {
+      return this.subscriptionService.handleSubscriptionWebhook(event);
+    } else {
+      return this.boostService.handleWebhook(event);
+    }
   }
 
   @Post('active')
@@ -81,5 +101,21 @@ export class BoostController {
     return {
       message: 'Active boost created successfully',
     };
+  }
+
+  @Get('subscriptions')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Get user subscriptions' })
+  @ApiResponse({ status: 200, description: 'Returns user subscriptions' })
+  async getUserSubscriptions(@Req() req: Request) {
+    return this.subscriptionService.getUserSubscriptions(req.user?._id);
+  }
+
+  @Get('subscriptions/active')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Get active subscription' })
+  @ApiResponse({ status: 200, description: 'Returns active subscription' })
+  async getActiveSubscription(@Req() req: Request) {
+    return this.subscriptionService.getActiveSubscription(req.user?._id);
   }
 }

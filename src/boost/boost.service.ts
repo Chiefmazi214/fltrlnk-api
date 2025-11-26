@@ -187,7 +187,5 @@ export class BoostService {
       boosts.boosts[type] += countNumber;
       await boosts.save();
     }
-
-    await this.userService.markAsVerifiedUser(userId);
   }
 }
