@@ -27,11 +27,25 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
             matchConditions.businessType = { $in: businessTypes as any}
         }
 
+        const verificationConditions = [
+            { 'user.isVerified': true },
+            { 'user.pregenerated': true }
+        ];
+
         if (searchQuery) {
-            matchConditions.$or = [
-                { companyName: { $regex: searchQuery, $options: 'i' } },
-                { 'user.displayName': { $regex: searchQuery, $options: 'i' } }
+            matchConditions.$and = [
+                {
+                    $or: [
+                        { companyName: { $regex: searchQuery, $options: 'i' } },
+                        { 'user.displayName': { $regex: searchQuery, $options: 'i' } }
+                    ]
+                },
+                {
+                    $or: verificationConditions
+                }
             ];
+        } else {
+            matchConditions.$or = verificationConditions;
         }
 
         const pipeline = [
@@ -89,7 +103,9 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
                     'user.lifestyleInfo': 1,
                     'user.isOnline': 1,
                     'user.profileType': 1,
-                    'user.businessId': 1
+                    'user.businessId': 1,
+                    'user.isVerified': 1,
+                    'user.pregenerated': 1,
                 }
             },
             {

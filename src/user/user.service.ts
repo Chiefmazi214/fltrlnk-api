@@ -193,7 +193,8 @@ export class UserService {
 
     const referralUser = await this.userRepository.findByUsername(input.referralUsername);
     if (!referralUser) {
-      throw new NotFoundException('User not found');
+      await this.boostService.assignReferralBoost(userId);
+      return
     }
 
     const updatedUser = await this.userRepository.update(userId, {

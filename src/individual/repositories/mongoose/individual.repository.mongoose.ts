@@ -25,10 +25,13 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
                         maxDistance / 3963.2 // Convert miles to radians (Earth radius in miles)
                     ]
                 }
-            }
+            },
+            $or: [
+                { 'user.isVerified': true },
+                { 'user.pregenerated': true }
+            ]
         };
 
-        // Add searchQuery filter if provided
         if (searchQuery) {
             matchConditions['user.displayName'] = { $regex: searchQuery, $options: 'i' };
         }
@@ -98,6 +101,8 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
                     'user.location': 1,
                     'user.lifestyleInfo': 1,
                     'user.isOnline': 1,
+                    'user.isVerified': 1,
+                    'user.pregenerated': 1,
                 }
             },
             {
