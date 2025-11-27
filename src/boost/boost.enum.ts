@@ -1,4 +1,5 @@
 export enum BoostType {
+  FLTR = 'fltr',
   LNK = 'lnk',
   MATCH = 'match',
   GPS = 'gps',

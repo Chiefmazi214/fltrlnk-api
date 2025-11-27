@@ -16,7 +16,11 @@ import {
 import { ActiveBoost, ActiveBoostDocument } from './models/active-boost.model';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ActiveBoostStatus, BoostType } from './boost.enum';
-import { Subscription, SubscriptionDocument, SubscriptionStatus } from './models/subscription.model';
+import {
+  Subscription,
+  SubscriptionDocument,
+  SubscriptionStatus,
+} from './models/subscription.model';
 
 @Injectable()
 export class BoostService {
@@ -106,7 +110,9 @@ export class BoostService {
         status: SubscriptionStatus.ACTIVE,
       });
 
-      this.logger.log(`Found ${activeSubscriptions.length} active subscriptions`);
+      this.logger.log(
+        `Found ${activeSubscriptions.length} active subscriptions`,
+      );
 
       let successCount = 0;
       let failCount = 0;
@@ -121,12 +127,13 @@ export class BoostService {
             await this.boostModel.create({
               user: userId,
               boosts: {
+                fltr: 0,
                 lnk: 0,
                 match: 0,
                 gps: 0,
-                loc: 0,
                 users: 5,
                 search: 0,
+                loc: 0,
               },
             });
           } else {
@@ -247,8 +254,30 @@ export class BoostService {
     }
   }
 
+  parseProductId(productId: string) {
+    const regex = /^([a-z]+)(?:_(\d+))?_boosts$/;
+
+    const match = productId.match(regex);
+
+    if (!match) {
+      throw new BadRequestException('Invalid product id format');
+    }
+
+    const [, type, count] = match;
+
+    const validTypes = Object.values(BoostType);
+    if (!validTypes.includes(type as BoostType)) {
+      throw new BadRequestException('Invalid boost type');
+    }
+
+    return {
+      type: type as BoostType,
+      count: count ? parseInt(count, 10) : 1,
+    };
+  }
+
   async boostPurchase(event: RevenueCatWebhookEvent) {
-    let [count, type] = event.entitlement_ids; // type is boost_type (lnk, match, gps, loc, users, search)
+    const { count, type } = this.parseProductId(event.product_id);
 
     const userId = event.app_user_id;
 
@@ -257,7 +286,7 @@ export class BoostService {
     }
 
     if (!count || !type) {
-      throw new BadRequestException('Invalid entitlement ids');
+      throw new BadRequestException('Invalid product id');
     }
 
     const countNumber = Number(count);
@@ -266,7 +295,7 @@ export class BoostService {
     }
 
     if (!Object.values(BoostType).includes(type as BoostType)) {
-      throw new BadRequestException('Invalid type');
+      throw new BadRequestException('Invalid boost type');
     }
 
     const boosts = await this.boostModel.findOne({
