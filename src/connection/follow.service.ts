@@ -19,6 +19,7 @@ export class FollowService {
   async followUser(
     userId: string,
     followingId: string,
+    status: FollowStatus = FollowStatus.PENDING,
   ): Promise<FollowDocument> {
     if (userId === followingId) {
       throw new BadRequestException('You cannot follow yourself');
@@ -37,6 +38,7 @@ export class FollowService {
       {
         follower: userId,
         following: followingId,
+        status,
       },
       [
         { path: 'follower', select: 'username email profileImage' },

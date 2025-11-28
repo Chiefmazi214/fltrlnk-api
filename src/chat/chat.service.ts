@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
 import { ChatRoomRepositoryInterface } from './repositories/abstract/chat-room.repository-interface';
 import { MessageRepositoryInterface } from './repositories/abstract/message.repository-interface';
 import { ChatRoomDocument } from './models/chat-room.model';
@@ -12,6 +12,7 @@ import { CreateColabInput, UpdateColabInput } from './dtos/colab.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/models/notification.model';
 import { UserDocument } from 'src/user/models/user.model';
+import { ConnectionService } from 'src/connection/connection.service';
 
 @Injectable()
 export class ChatService {
@@ -24,6 +25,8 @@ export class ChatService {
     private readonly colabRepository: ColabRepositoryInterface,
     private readonly notificationService: NotificationService,
     private readonly userService: UserService,
+    @Inject(forwardRef(() => ConnectionService))
+    private readonly connectionService: ConnectionService,
   ) {}
 
   async updateUserOnlineStatus(
@@ -226,6 +229,20 @@ export class ChatService {
       message: `Colab request ${colab.status} by ${user.displayName || user.username}`,
       title: `Colab Request ${colab.status} by ${user.displayName || user.username}`,
     });
+
+    // If colab is accepted, create mutual follow relationships and connection
+    if (input.status === ColabStatus.ACCEPTED) {
+      const connectionResult = await this.connectionService.createMutualConnectionWithFollows(
+        user._id.toString(),
+        colab.user.toString(),
+      );
+
+      return {
+        ...colab.toObject(),
+        connection: connectionResult.connection,
+        chatRoomId: connectionResult.chatRoomId,
+      };
+    }
 
     return colab;
   }

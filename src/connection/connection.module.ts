@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConnectionService } from './connection.service';
 import { ConnectionController } from './connection.controller';
 import { ConnectionRepository } from './repositories/mongoose/connection.repository.mongoose';
@@ -24,7 +24,7 @@ import { Like, LikeSchema } from './models/like.model';
       { name: Like.name, schema: LikeSchema },
     ]),
     UserModule,
-    ChatModule,
+    forwardRef(() => ChatModule),
   ],
   exports: [ConnectionService, FollowService, LikeService],
   providers: [
