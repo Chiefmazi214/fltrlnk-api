@@ -141,21 +141,21 @@ export class FollowService {
 
   async getFollowing(
     userId: string,
-    paginationDto: PaginationDto,
+    input: GetFollowersQueryDto,
   ): Promise<PaginatedResultDto<FollowDocument>> {
-    const { page = 1, limit = 10 } = paginationDto;
+    const { page = 1, limit = 10, status = FollowStatus.ACCEPTED } = input;
     const skip = (page - 1) * limit;
 
     const [following, total] = await Promise.all([
       this.followRepository.findAll(
-        { follower: userId },
+        { follower: userId, ...(status ? { status } : {}) },
         [
           { path: 'follower', select: 'username email profileImage' },
           { path: 'following', select: 'username email profileImage' },
         ],
         { skip, limit },
       ),
-      this.followRepository.count({ follower: userId }),
+      this.followRepository.count({ follower: userId, ...(status ? { status } : {}) }),
     ]);
 
     return {

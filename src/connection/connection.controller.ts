@@ -68,11 +68,10 @@ export class ConnectionController {
 
   @Get('following/:id')
   async getFollowing(
-    @Req() req: Request,
-    @Param('id') id: string,
-    @Query() paginationDto: PaginationDto,
+    @Param() params: CommonParams,
+    @Query() input: GetFollowersQueryDto,
   ) {
-    return this.followService.getFollowing(id, paginationDto);
+    return this.followService.getFollowing(params.id, input);
   }
 
   @Post('request/:id')
