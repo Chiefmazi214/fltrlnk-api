@@ -1,6 +1,5 @@
-import { Inject, Injectable, BadRequestException } from '@nestjs/common';
+import { Inject, Injectable, BadRequestException, forwardRef } from '@nestjs/common';
 import { ConnectionRepositoryInterface } from './repositories/abstract/connection.repository-interface';
-import { Connection } from 'mongoose';
 import { ConnectionDocument, ConnectionStatus } from './models/connection.model';
 import { PopulationOptions } from 'src/common/repository/abstract/base.repository';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
@@ -10,13 +9,15 @@ import { ChatService } from 'src/chat/chat.service';
 import { FollowService } from './follow.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/models/notification.model';
-import { ChatRoomType } from 'src/chat/models/chat-room.model';
+import { ChatRoomType } from 'src/chat/chat.types';
+import { FollowStatus } from './like.enum';
 
 @Injectable()
 export class ConnectionService {
     constructor(
         @Inject(ConnectionRepositoryInterface)
         private readonly connectionRepository: ConnectionRepositoryInterface,
+        @Inject(forwardRef(() => ChatService))
         private readonly chatService: ChatService,
         private readonly followService: FollowService,
         private readonly notificationService: NotificationService
@@ -92,10 +93,10 @@ export class ConnectionService {
             status: ConnectionStatus.ACCEPTED
         });
 
-        // Try to create mutual follow relationships, ignore if already following
+        // Try to create mutual follow relationships with ACCEPTED status, ignore if already following
         await Promise.all([
-            this.followService.followUser(userId, connection.requester.toString()).catch(() => {}),
-            this.followService.followUser(connection.requester.toString(), userId).catch(() => {}),
+            this.followService.followUser(userId, connection.requester.toString(), FollowStatus.ACCEPTED).catch(() => {}),
+            this.followService.followUser(connection.requester.toString(), userId, FollowStatus.ACCEPTED).catch(() => {}),
             this.notificationService.createNotification({
                 actorId: userId,
                 recipientId: connection.requester.toString(),
@@ -175,10 +176,10 @@ export class ConnectionService {
     }> {
         // Check if user is following target
         const isFollowing = await this.followService.isFollowing(userId, targetUserId);
-        
+
         // Check if target is following user
         const isFollowedBy = await this.followService.isFollowing(targetUserId, userId);
-        
+
         // Check connection status
         const connection = await this.connectionRepository.findOne({
             $or: [
@@ -191,6 +192,60 @@ export class ConnectionService {
             isFollowing,
             isFollowedBy,
             connectionStatus: connection ? connection.status : null
+        };
+    }
+   
+    async createMutualConnectionWithFollows(userId: string, collaboratorId: string): Promise<{
+        connection: ConnectionDocument;
+        chatRoomId: string;
+    }> {
+        // Check if connection already exists
+        const existingConnection = await this.connectionRepository.findOne({
+            $or: [
+                { requester: userId, recipient: collaboratorId },
+                { requester: collaboratorId, recipient: userId }
+            ]
+        });
+
+        if (existingConnection && existingConnection.status === ConnectionStatus.ACCEPTED) {
+            // Connection already exists, just return it with chat room
+            const chat = await this.chatService.createChatRoom([userId, collaboratorId], ChatRoomType.PRIMARY);
+            return {
+                connection: existingConnection,
+                chatRoomId: chat._id.toString()
+            };
+        }
+
+        // Create or update connection
+        let connection: ConnectionDocument;
+        if (existingConnection) {
+            connection = await this.connectionRepository.update(existingConnection._id.toString(), {
+                status: ConnectionStatus.ACCEPTED
+            });
+        } else {
+            connection = await this.connectionRepository.create({
+                requester: userId,
+                recipient: collaboratorId,
+                status: ConnectionStatus.ACCEPTED
+            });
+        }
+
+        // Create mutual follow relationships with ACCEPTED status, ignore if already following
+        await Promise.all([
+            this.followService.followUser(userId, collaboratorId, FollowStatus.ACCEPTED).catch(() => {}),
+            this.followService.followUser(collaboratorId, userId, FollowStatus.ACCEPTED).catch(() => {}),
+            this.notificationService.createNotification({
+                actorId: userId,
+                recipientId: collaboratorId,
+                type: NotificationType.CONNECTION_REQUEST,
+                message: `${userId} is now connected with you`
+            })
+        ]);
+
+        const chat = await this.chatService.createChatRoom([userId, collaboratorId], ChatRoomType.PRIMARY);
+        return {
+            connection,
+            chatRoomId: chat._id.toString()
         };
     }
 }

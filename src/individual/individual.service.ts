@@ -10,18 +10,20 @@ import mongoose from 'mongoose';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { UserSettingService } from 'src/user-setting/user-setting.service';
-import { UserSettingRepositoryInterface } from 'src/user-setting/repositories/abstract/user-setting.repository-interface';
 import { AttachmentService } from 'src/attachment/attachment.service';
+import { BoostService } from 'src/boost/boost.service';
+import { BoostType } from 'src/boost/boost.enum';
 
 @Injectable()
 export class IndividualService {
   constructor(
     @Inject(IndividualRepositoryInterface)
-    private individualRepository: IndividualRepositoryInterface,
-    private userService: UserService,
-    private roleService: RoleService,
-    private userSettingService: UserSettingService,
-    private attachmentService: AttachmentService,
+    private readonly individualRepository: IndividualRepositoryInterface,
+    private readonly userService: UserService,
+    private readonly roleService: RoleService,
+    private readonly userSettingService: UserSettingService,
+    private readonly attachmentService: AttachmentService,
+    private readonly boostService: BoostService,
   ) {}
 
   async createIndividual(
@@ -106,8 +108,36 @@ export class IndividualService {
 
   async getIndividuals(
     paginationDto: PaginationDto,
+    searchQuery?: string,
   ): Promise<PaginatedResultDto<Individual>> {
     const { page = 1, limit = 10 } = paginationDto;
+
+    // Use the new getAll method if searchQuery is provided
+    if (searchQuery) {
+      const { data, total } = await this.individualRepository.getAll(page, limit, searchQuery);
+
+      // Fetch attachments for each individual
+      const individualsWithAttachments = await Promise.all(
+        data.map(async (individual: any) => {
+          if (individual.user && individual.user._id) {
+            const attachments = await this.attachmentService.getAttachmentsByUser(individual.user._id.toString());
+            return {
+              ...individual,
+              attachments,
+            };
+          }
+          return individual;
+        })
+      );
+
+      return {
+        data: individualsWithAttachments as any,
+        total,
+        page,
+        limit,
+      };
+    }
+
     const skip = (page - 1) * limit;
     const [individuals, total] = await Promise.all([
       this.individualRepository.findAll(
@@ -172,8 +202,8 @@ export class IndividualService {
     const { page = 1, limit = 100 } = paginationDto;
     const skip = (page - 1) * limit;
 
-    let idsToUse: string[] = [];
-    console.log("@1......idsToUse....",idsToUse);
+    let categoriesToFilter: string[] = [];
+    console.log("@1......categoriesToFilter....",categoriesToFilter);
     if (!lifestyleInfoIds || lifestyleInfoIds.length === 0) {
       const userSetting =
         await this.userSettingService.getUserSettingByUserId(userId);
@@ -183,13 +213,13 @@ export class IndividualService {
         userSetting.lifestyleInfos &&
         userSetting.lifestyleInfos.length > 0
       ) {
-        idsToUse = userSetting.lifestyleInfos.map((id) => id.toString());
+        categoriesToFilter = userSetting.lifestyleInfos;
       }
     } else {
-      idsToUse = lifestyleInfoIds;
+      categoriesToFilter = lifestyleInfoIds;
     }
 
-    if (!idsToUse || idsToUse.length === 0) {
+    if (!categoriesToFilter || categoriesToFilter.length === 0) {
       const [individuals, total] = await Promise.all([
         this.individualRepository.findAll(
           {},
@@ -225,13 +255,17 @@ export class IndividualService {
         $unwind: '$user',
       },
       {
+        $lookup: {
+          from: 'lifestyle-info',
+          localField: 'user.lifestyleInfo',
+          foreignField: '_id',
+          as: 'user.lifestyleInfoPopulated',
+        },
+      },
+      {
         $match: {
-          'user.lifestyleInfo': {
-            $elemMatch: {
-              _id: {
-                $in: idsToUse.map((id) => new mongoose.Types.ObjectId(id)),
-              },
-            },
+          'user.lifestyleInfoPopulated.category': {
+            $in: categoriesToFilter,
           },
         },
       },
@@ -263,9 +297,93 @@ export class IndividualService {
 
     const [result] = await this.individualRepository.aggregate(pipeline);
     const total = result.metadata[0]?.total || 0;
+    let data = result.data;
+
+    // LNKBoost: Insert boosted profiles at every 5th position
+    const activeBoost = await this.boostService.getActiveBoost(userId, BoostType.LNK);
+    if (activeBoost && activeBoost.count > 0) {
+      // Fetch boosted individuals (users with active LNK boosts)
+      const boostedPipeline = [
+        {
+          $lookup: {
+            from: 'activeboosts',
+            localField: 'user',
+            foreignField: 'user',
+            as: 'activeBoosts',
+          },
+        },
+        {
+          $match: {
+            'activeBoosts.type': BoostType.LNK,
+            'activeBoosts.count': { $gt: 0 },
+            'activeBoosts.startDate': {
+              $gte: new Date(Date.now() - 2 * 60 * 60 * 1000)
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'user',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+        {
+          $unwind: '$user',
+        },
+        {
+          $addFields: {
+            boostCount: { $arrayElemAt: ['$activeBoosts.count', 0] },
+          },
+        },
+        {
+          $sort: { boostCount: -1 },
+        },
+        {
+          $project: {
+            _id: 1,
+            biography: 1,
+            fltrlScreen: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            'user._id': 1,
+            'user.username': 1,
+            'user.email': 1,
+            'user.profileImage': 1,
+            'user.attributes': 1,
+            'user.displayName': 1,
+            'user.location': 1,
+            'user.lifestyleInfo': 1,
+            'user.isOnline': 1,
+            boostCount: 1,
+          },
+        },
+      ];
+
+      const boostedIndividuals = await this.individualRepository.aggregate(boostedPipeline);
+
+      if (boostedIndividuals && boostedIndividuals.length > 0) {
+        const finalData: any[] = [];
+        let boostedIndex = 0;
+
+        // Insert boosted profiles every 5th position
+        for (let i = 0; i < data.length; i++) {
+          finalData.push(data[i]);
+
+          // Insert a boosted profile at every 5th position (positions 4, 9, 14, etc.)
+          if ((i + 1) % 5 === 0 && boostedIndex < boostedIndividuals.length) {
+            finalData.push({ ...boostedIndividuals[boostedIndex], isBoosted: true });
+            boostedIndex++;
+          }
+        }
+
+        data = finalData;
+      }
+    }
 
     return {
-      data: result.data,
+      data,
       total,
       page,
       limit,
@@ -279,13 +397,25 @@ export class IndividualService {
     page: number,
     limit: number,
     requesterUserId?: string,
+    searchQuery?: string,
   ): Promise<PaginatedResultDto<Individual>> {
+    // Get user settings to filter by lifestyle categories
+    let categoriesToFilter: string[] = [];
+    if (requesterUserId) {
+      const userSetting = await this.userSettingService.getUserSettingByUserId(requesterUserId);
+      if (userSetting && userSetting.lifestyleInfos && userSetting.lifestyleInfos.length > 0) {
+        categoriesToFilter = userSetting.lifestyleInfos;
+      }
+    }
+
     const { data, total } = await this.individualRepository.findNearby(
       latitude,
       longitude,
       maxDistance,
       page,
       limit,
+      searchQuery,
+      categoriesToFilter,
     );
     const filteredData = requesterUserId
       ? data.filter(
@@ -343,4 +473,5 @@ export class IndividualService {
       limit,
     };
   }
+
 }

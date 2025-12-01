@@ -6,6 +6,7 @@ import { BusinessRepository } from './repositories/mongoose/business.repository.
 import { MongooseModule } from '@nestjs/mongoose';
 import { Business, BusinessSchema } from './models/business.model';
 import { AttachmentModule } from 'src/attachment/attachment.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   providers: [BusinessService,
@@ -19,6 +20,7 @@ import { AttachmentModule } from 'src/attachment/attachment.module';
   imports: [
     MongooseModule.forFeature([{ name: Business.name, schema: BusinessSchema }]),
     AttachmentModule,
+    UserModule
   ],
 })
-export class BusinessModule {}
+export class BusinessModule { }

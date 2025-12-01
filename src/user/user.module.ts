@@ -9,6 +9,7 @@ import { User, UserSchema } from './models/user.model';
 import { Role, RoleSchema } from './models/role.model';
 import { UserController } from './user.controller';
 import { RoleService } from './role.service';
+import { RoleController } from './role.controller';
 import { StorageModule } from 'src/storage/storage.module';
 import { AttachmentModule } from 'src/attachment/attachment.module';
 import { LifestyleInfoRepositoryInterface } from './repositories/abstract/lifestyle-info.repository-interface';
@@ -20,6 +21,7 @@ import { BusinessService } from 'src/business/business.service';
 import { BusinessRepositoryInterface } from 'src/business/repositories/abstract/business.repository-interface';
 import { BusinessRepository } from 'src/business/repositories/mongoose/business.repository.mongoose';
 import { Business, BusinessSchema } from 'src/business/models/business.model';
+import { Boost, BoostSchema } from 'src/boost/models/boost.model';
 
 @Module({
   imports: [
@@ -28,6 +30,7 @@ import { Business, BusinessSchema } from 'src/business/models/business.model';
       { name: Role.name, schema: RoleSchema },
       { name: LifestyleInfo.name, schema: LifestyleInfoSchema },
       { name: Business.name, schema: BusinessSchema },
+      { name: Boost.name, schema: BoostSchema },
     ]),
     StorageModule,
     AttachmentModule
@@ -55,6 +58,6 @@ import { Business, BusinessSchema } from 'src/business/models/business.model';
     }
   ],
   exports: [UserService, RoleService, LifestyleInfoService],
-  controllers: [UserController, LifestyleInfoController],
+  controllers: [UserController, LifestyleInfoController, RoleController],
 })
-export class UserModule {}
+export class UserModule { }

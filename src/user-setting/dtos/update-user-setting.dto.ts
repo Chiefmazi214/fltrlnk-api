@@ -1,45 +1,81 @@
-import { IsBoolean, IsObject, ValidateNested, IsOptional, IsArray, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsObject,
+  ValidateNested,
+  IsOptional,
+  IsArray,
+  IsEnum,
+} from 'class-validator';
 import { Type } from 'class-transformer';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { LifestyleInfoCategory } from '../models/user-setting.model';
 
 export class CategorySettingDto {
-    @IsOptional()
-    @IsBoolean()
-    individual?: boolean;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  individual?: boolean;
 
-    @IsOptional()
-    @IsBoolean()
-    foodAndBeverage?: boolean;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  foodAndBeverage?: boolean;
 
-    @IsOptional()
-    @IsBoolean()
-    entertainmentVenues?: boolean;
-    
-    @IsOptional()
-    @IsBoolean()
-    outdoorActivity?: boolean;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  entertainmentVenues?: boolean;
 
-    @IsOptional()
-    @IsBoolean()
-    nightLife?: boolean;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  outdoorActivity?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  nightLife?: boolean;
 }
 
+export class DiscoverySettingDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  fltrScreen?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  stratosphereScreen?: boolean;
+}
 export class UpdateUserSettingDto {
-    @IsOptional()
-    @IsObject()
-    @ValidateNested()
-    @Type(() => CategorySettingDto)
-    categorySetting?: CategorySettingDto;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => CategorySettingDto)
+  categorySetting?: CategorySettingDto;
 
-    @IsOptional()
-    @IsBoolean()
-    isNotificationEnabled?: boolean;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => DiscoverySettingDto)
+  discovery?: DiscoverySettingDto;
 
-    @IsOptional()
-    @IsBoolean()
-    isEmailNotificationEnabled?: boolean;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isNotificationEnabled?: boolean;
 
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
-    lifestyleInfos?: string[];
-} 
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isEmailNotificationEnabled?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsArray()
+  @IsEnum(LifestyleInfoCategory, { each: true })
+  lifestyleInfos?: LifestyleInfoCategory[];
+}

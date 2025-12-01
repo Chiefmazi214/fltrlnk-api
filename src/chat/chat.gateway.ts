@@ -5,8 +5,9 @@ import { UseGuards, Inject } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { WsAuthGuard } from 'src/auth/guards/ws-auth.guard';
 import { WsAuthMiddleware } from 'src/auth/middleware/ws-auth.middleware';
+import { ISendMessagePayload } from './chat.types';
 
-@WebSocketGateway(parseInt(process.env.CHAT_SERVER_PORT || '3001'), {
+@WebSocketGateway({
     cors: {
       origin: '*',
       methods: ['GET', 'POST'],
@@ -19,7 +20,7 @@ import { WsAuthMiddleware } from 'src/auth/middleware/ws-auth.middleware';
     pingTimeout: 60000,
     pingInterval: 25000,
     connectTimeout: 45000,
-    path: '/socket.io',
+    path: '/socket.io/',
     serveClient: false,
     adapter: null,
     allowUpgrades: true,
@@ -47,9 +48,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         });
 
         server.on('connection', (socket) => {
-            console.log('Raw socket connection received');
             console.log('Socket ID:', socket.id);
-            console.log('Socket headers:', socket.handshake.headers);
 
             socket.onAny((eventName, ...args) => {
                 console.log('Received event:', eventName);
@@ -59,77 +58,100 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     async handleConnection(client: Socket) {
-        const userId = client.data.userId;
-        if (!userId) {
-            console.log('Connection rejected: No userId in socket data');
-            client.disconnect();
-            return;
-        }
+        try {
+            const userId = client.data.userId;
+            if (!userId) {
+                console.log('Connection rejected: No userId in socket data');
+                client.disconnect();
+                return;
+            }
 
-        await this.chatService.updateUserOnlineStatus(userId, true);
-        console.log(`Client connected: ${userId}`);
-
-        const userRooms = await this.chatService.getUserChatRooms(userId);
-        console.log(userRooms)
-        
-        for (const room of userRooms) {
-            client.join(room._id.toString());
-            console.log(`User ${userId} joined room ${room._id}`);
-
-            const onlineUsers = await this.chatService.getOnlineUsers(room._id.toString());
-            this.server.to(room._id.toString()).emit('userOnlineStatus', {
-                userId,
-                isOnline: true,
-                onlineUsers
-            });
-        }
-    }
-
-    async handleDisconnect(client: Socket) {
-        const userId = client.data.userId;
-        if (userId) {
-            await this.chatService.updateUserOnlineStatus(userId, false);
-            console.log(`Client disconnected: ${userId}`);
+            await this.chatService.updateUserOnlineStatus(userId, true);
+            console.log(`Client connected: ${userId}`);
 
             const userRooms = await this.chatService.getUserChatRooms(userId);
             
             for (const room of userRooms) {
+                client.join(room._id.toString());
+                console.log(`User ${userId} joined room ${room._id}`);
+
                 const onlineUsers = await this.chatService.getOnlineUsers(room._id.toString());
                 this.server.to(room._id.toString()).emit('userOnlineStatus', {
                     userId,
-                    isOnline: false,
+                    isOnline: true,
                     onlineUsers
                 });
             }
+        } catch (error) {
+            console.error('Error in handleConnection:', error);
+            client.disconnect();
+        }
+    }
+
+    async handleDisconnect(client: Socket) {
+        try {
+            const userId = client.data.userId;
+            if (userId) {
+                await this.chatService.updateUserOnlineStatus(userId, false);
+                console.log(`Client disconnected: ${userId}`);
+
+                const userRooms = await this.chatService.getUserChatRooms(userId);
+                
+                for (const room of userRooms) {
+                    const onlineUsers = await this.chatService.getOnlineUsers(room._id.toString());
+                    this.server.to(room._id.toString()).emit('userOnlineStatus', {
+                        userId,
+                        isOnline: false,
+                        onlineUsers
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error in handleDisconnect:', error);
         }
     }
 
     @UseGuards(WsAuthGuard)
     @SubscribeMessage('joinChatRoom')
-    async handleJoinChatRoom(client: Socket, chatRoomId: string) {
-        const userId = client.data.userId;
-        
-        const canJoin = await this.chatService.canUserJoinRoom(userId, chatRoomId);
-        if (!canJoin) {
-            client.emit('error', { message: 'You are not allowed to join this chat room' });
-            return;
+    async handleJoinChatRoom(client: Socket, payload: { chatRoomId: string }) {
+        try {
+            const userId = client.data.userId;
+            
+            // Extract chatRoomId from payload object
+            const chatRoomId = payload?.chatRoomId;
+            
+            if (!chatRoomId) {
+                throw new WsException('Missing chatRoomId');
+            }
+
+            const canJoin = await this.chatService.canUserJoinRoom(userId, chatRoomId);
+            if (!canJoin) {
+                throw new WsException('You are not allowed to join this chat room');
+            }
+
+            client.join(chatRoomId);
+            const messages = await this.chatService.getChatRoomMessages(chatRoomId);
+            client.emit('chatRoomMessages', messages);
+
+            const onlineUsers = await this.chatService.getOnlineUsers(chatRoomId);
+            this.server.to(chatRoomId).emit('userOnlineStatus', {
+                userId,
+                isOnline: true,
+                onlineUsers
+            });
+        } catch (error) {
+            console.error('Error in handleJoinChatRoom:', error);
+            if (error instanceof WsException) {
+                client.emit('error', { message: error.message });
+            } else {
+                client.emit('error', { message: 'Failed to join chat room' });
+            }
         }
-
-        client.join(chatRoomId);
-        const messages = await this.chatService.getChatRoomMessages(chatRoomId);
-        client.emit('chatRoomMessages', messages);
-
-        const onlineUsers = await this.chatService.getOnlineUsers(chatRoomId);
-        this.server.to(chatRoomId).emit('userOnlineStatus', {
-            userId,
-            isOnline: true,
-            onlineUsers
-        });
     }
 
     @UseGuards(WsAuthGuard)
     @SubscribeMessage('sendMessage')
-    async handleMessage(client: Socket, payload: any) {
+    async handleMessage(client: Socket, payload: ISendMessagePayload) {
         try {
             const userId = client.data.userId;
             
@@ -163,6 +185,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             });
 
         } catch (error) {
+            console.error('Error in handleMessage:', error);
             if (error instanceof WsException) {
                 client.emit('error', { message: error.message });
             } else {
@@ -173,15 +196,30 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @UseGuards(WsAuthGuard)
     @SubscribeMessage('leaveChatRoom')
-    async handleLeaveChatRoom(client: Socket, chatRoomId: string) {
-        const userId = client.data.userId;
-        client.leave(chatRoomId);
+    async handleLeaveChatRoom(client: Socket, payload: { chatRoomId: string }) {
+        try {
+            const userId = client.data.userId;
+            const chatRoomId = payload?.chatRoomId;
 
-        const onlineUsers = await this.chatService.getOnlineUsers(chatRoomId);
-        this.server.to(chatRoomId).emit('userOnlineStatus', {
-            userId,
-            isOnline: false,
-            onlineUsers
-        });
+            if (!chatRoomId) {
+                throw new WsException('Missing chatRoomId');
+            }
+
+            client.leave(chatRoomId);
+
+            const onlineUsers = await this.chatService.getOnlineUsers(chatRoomId);
+            this.server.to(chatRoomId).emit('userOnlineStatus', {
+                userId,
+                isOnline: false,
+                onlineUsers
+            });
+        } catch (error) {
+            console.error('Error in handleLeaveChatRoom:', error);
+            if (error instanceof WsException) {
+                client.emit('error', { message: error.message });
+            } else {
+                client.emit('error', { message: 'Failed to leave chat room' });
+            }
+        }
     }
 }

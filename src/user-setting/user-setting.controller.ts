@@ -1,19 +1,26 @@
-import { Body, Controller, Post, UseGuards, Req } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Req, Get } from '@nestjs/common';
 import { UserSettingService } from './user-setting.service';
 import { UpdateUserSettingDto } from './dtos/update-user-setting.dto';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { Request } from 'express';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('user-settings')
 @UseGuards(AuthGuard)
+@ApiBearerAuth()
 export class UserSettingController {
-    constructor(private readonly userSettingService: UserSettingService) {}
+    constructor(private readonly userSettingService: UserSettingService) { }
 
     @Post()
     async updateUserSetting(
         @Body() updateUserSettingDto: UpdateUserSettingDto,
         @Req() req: Request
     ) {
-        return this.userSettingService.upsertUserSetting(req.user._id, updateUserSettingDto);
+        return this.userSettingService.upsertUserSetting(req.user._id, req.user?.businessType, updateUserSettingDto);
+    }
+
+    @Get()
+    async getUserSetting(@Req() req: Request) {
+        return this.userSettingService.getAndCreateUserSettingByUserId(req.user._id, req.user?.businessType);
     }
 }

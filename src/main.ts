@@ -29,9 +29,8 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   const port = process.env.PORT || 3000;
-  const chatPort = process.env.CHAT_SERVER_PORT || 3001;
   await app.listen(port);
-  console.log(`Application is running on port: ${port}`);
-  console.log(`WebSocket server is running on ws://localhost:${chatPort}/chat`);
+
+  console.log(`Application is running on PORT: ${port}`);
 }
 bootstrap();

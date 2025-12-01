@@ -5,12 +5,14 @@ import { CreateIndividualDto } from './dtos/create-individual.dto';
 import { Request } from 'express';
 import { UpdateIndividualDto } from './dtos/update-individual.dto';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
+import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 
 @Controller('individual')
 export class IndividualController {
     constructor(private readonly individualService: IndividualService) {}
 
     @Post()
+    @ApiBearerAuth()
     @UseGuards(AuthGuard)
     async createIndividual(@Body() body: CreateIndividualDto, @Req() req: Request) {
         return this.individualService.createIndividual(req.user._id, body);
@@ -18,9 +20,12 @@ export class IndividualController {
 
     @Get('by-lifestyle-info')
     @UseGuards(AuthGuard)
+    @ApiBearerAuth()
+    @ApiQuery({ name: 'ids', required: false })
     async getIndividualsByLifestyleInfo(
         @Query() paginationDto: PaginationDto,
         @Req() req: Request,
+        // optional in swagger docs
         @Query('ids') lifestyleInfoIds?: string
     ) {
         const ids = lifestyleInfoIds ? lifestyleInfoIds.split(',') : undefined;
@@ -28,6 +33,7 @@ export class IndividualController {
     }
 
     @Get()
+    @ApiBearerAuth()
     @UseGuards(AuthGuard)
     async getIndividual(@Req() req: Request) {
         return this.individualService.getIndividual(req.user._id);
@@ -45,6 +51,7 @@ export class IndividualController {
 
     @Put()
     @UseGuards(AuthGuard)
+    @ApiBearerAuth()
     async updateIndividual(@Body() body: UpdateIndividualDto, @Req() req: Request) {
         return this.individualService.updateIndividual(req.user._id, body);
     }

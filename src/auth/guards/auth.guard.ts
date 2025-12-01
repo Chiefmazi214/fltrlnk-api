@@ -27,7 +27,7 @@ import {
       console.log('AuthGuard - Request Headers:', request.headers);
       const token = this.extractTokenFromHeader(request);
       if (!token) {
-        throw new UnauthorizedException('Missing token');
+        throw new UnauthorizedException();
       }
       try {
         const payload = await this.jwtService.verifyAsync(token, {
@@ -55,8 +55,8 @@ import {
   
     private extractTokenFromHeader(request: Request): string | undefined {
       const [type, token] =
-        request.headers.authorization?.split(' ') ||
-        request.cookies.authorization?.split(' ') ||
+        request.headers?.authorization?.split(' ') ||
+        request.cookies?.authorization?.split(' ') ||
         [];
       return type === 'Bearer' ? token : undefined;
     }

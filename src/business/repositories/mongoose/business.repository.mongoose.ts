@@ -9,9 +9,45 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
         super(businessModel);
     }
 
-    async findNearby(latitude: number, longitude: number, maxDistance: number, businessType: string, page: number, limit: number): Promise<{ data: BusinessDocument[], total: number }> {
+    async findNearby(latitude: number, longitude: number, maxDistance: number, businessTypes: string[], page: number, limit: number, searchQuery?: string): Promise<{ data: BusinessDocument[], total: number }> {
         const skip = (page - 1) * limit;
-        
+
+        const matchConditions: any = {
+            'user.location': {
+                $geoWithin: {
+                    $centerSphere: [
+                        [longitude, latitude],
+                        maxDistance / 3963.2 // Convert miles to radians (Earth radius in miles)
+                    ]
+                }
+            }
+        };
+
+        if (businessTypes?.length) {
+            matchConditions.businessType = { $in: businessTypes as any}
+        }
+
+        const verificationConditions = [
+            { 'user.isVerified': true },
+            { 'user.pregenerated': true }
+        ];
+
+        if (searchQuery) {
+            matchConditions.$and = [
+                {
+                    $or: [
+                        { companyName: { $regex: searchQuery, $options: 'i' } },
+                        { 'user.displayName': { $regex: searchQuery, $options: 'i' } }
+                    ]
+                },
+                {
+                    $or: verificationConditions
+                }
+            ];
+        } else {
+            matchConditions.$or = verificationConditions;
+        }
+
         const pipeline = [
             {
                 $lookup: {
@@ -25,20 +61,11 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
                 $unwind: '$user'
             },
             {
-                $match: {
-                    'user.location': {
-                        $geoWithin: {
-                            $centerSphere: [
-                                [longitude, latitude],
-                                maxDistance / 3963.2 // Convert miles to radians (Earth radius in miles)
-                            ]
-                        }
-                    },
-                    businessType
-                }
+                $match: matchConditions
             },
             {
                 $addFields: {
+                    randomOrder: { $rand: {} },
                     'user.businessId': {
                         $cond: {
                             if: { $eq: ['$user.profileType', 'business'] },
@@ -47,6 +74,9 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
                         }
                     }
                 }
+            },
+            {
+                $sort: { randomOrder: 1 }
             },
             {
                 $project: {
@@ -73,7 +103,9 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
                     'user.lifestyleInfo': 1,
                     'user.isOnline': 1,
                     'user.profileType': 1,
-                    'user.businessId': 1
+                    'user.businessId': 1,
+                    'user.isVerified': 1,
+                    'user.pregenerated': 1,
                 }
             },
             {
@@ -87,7 +119,7 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
             }
         ];
 
-        const [result] = await this.businessModel.aggregate(pipeline).exec();
+        const [result] = await this.businessModel.aggregate(pipeline as any).exec();
         const total = result.metadata[0]?.total || 0;
 
         return { data: result.data, total };
@@ -203,5 +235,94 @@ export class BusinessRepository extends MongooseRepositoryBase<BusinessDocument>
         ]);
 
         return { data, total };
+    }
+
+    async getAll(page: number, limit: number, searchQuery?: string): Promise<{ data: BusinessDocument[], total: number }> {
+        const skip = (page - 1) * limit;
+
+        const matchConditions: any = {};
+
+        // Add searchQuery filter if provided
+        if (searchQuery) {
+            matchConditions.$or = [
+                { companyName: { $regex: searchQuery, $options: 'i' } },
+                { 'user.displayName': { $regex: searchQuery, $options: 'i' } }
+            ];
+        }
+
+        const pipeline = [
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            {
+                $unwind: '$user'
+            },
+            ...(searchQuery ? [{
+                $match: matchConditions
+            }] : []),
+            {
+                $addFields: {
+                    'user.businessId': {
+                        $cond: {
+                            if: { $eq: ['$user.profileType', 'business'] },
+                            then: '$_id',
+                            else: null
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    companyName: 1,
+                    businessType: 1,
+                    description: 1,
+                    address: 1,
+                    phoneNumber: 1,
+                    email: 1,
+                    website: 1,
+                    openingHours: 1,
+                    services: 1,
+                    mapDiscovery: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                    'user._id': 1,
+                    'user.username': 1,
+                    'user.email': 1,
+                    'user.profileImage': 1,
+                    'user.attributes': 1,
+                    'user.displayName': 1,
+                    'user.location': 1,
+                    'user.lifestyleInfo': 1,
+                    'user.isOnline': 1,
+                    'user.profileType': 1,
+                    'user.businessType': 1,
+                    'user.businessId': 1
+                }
+            },
+            {
+                $facet: {
+                    metadata: [{ $count: 'total' }],
+                    data: [
+                        { $skip: skip },
+                        { $limit: limit }
+                    ]
+                }
+            }
+        ];
+
+        const [result] = await this.businessModel.aggregate(pipeline).exec();
+        const total = result.metadata[0]?.total || 0;
+
+        return { data: result.data, total };
+    }
+
+    async aggregate(pipeline: any[]): Promise<any[]> {
+        return this.businessModel.aggregate(pipeline).exec();
     }
 }

@@ -1,9 +1,21 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ConflictException,
+  forwardRef,
+} from '@nestjs/common';
+import { Types } from 'mongoose';
 import { UserRepositoryInterface } from './repositories/abstract/user.repository-interface';
 import { User, UserDocument } from './models/user.model';
 import { RoleService } from './role.service';
 import { RoleEnum } from './models/role.model';
-import { ChangeBlockStatusInput, UpdateUserDto } from './dtos/update-user.dto';
+import {
+  ChangeUserStatusInput,
+  GetUsersWithPaginationQueryInput,
+  UpdateReferralUsernameDto,
+  UpdateUserDto,
+} from './dtos/user.dto';
 import { StorageService } from 'src/storage/storage.service';
 import { AttachmentService } from 'src/attachment/attachment.service';
 import { AttachmentType } from 'src/attachment/models/attachment.model';
@@ -12,9 +24,11 @@ import {
   LifestyleCategory,
   LifestyleInfoDocument,
 } from './models/lifestyle-info.model';
-import { Types } from 'mongoose';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { BusinessService } from 'src/business/business.service';
+import { ProfileType } from './user.enum';
+import { Business } from 'src/business/models/business.model';
+import { BoostService } from 'src/boost/boost.service';
 
 @Injectable()
 export class UserService {
@@ -25,8 +39,9 @@ export class UserService {
     private readonly storageService: StorageService,
     private readonly attachmentService: AttachmentService,
     private readonly lifestyleInfoService: LifestyleInfoService,
-    private readonly businessService: BusinessService,
-  ) {}
+    private readonly boostService: BoostService,
+    @Inject(forwardRef(() => BusinessService)) private readonly businessService: BusinessService,
+  ) { }
 
   async getUserByEmail(email: string): Promise<UserDocument> {
     return this.userRepository.findOne({ email });
@@ -75,6 +90,23 @@ export class UserService {
     return newUser;
   }
 
+  async markAsVerifiedBusinessUser(userId: string) {
+    const user = await this.userRepository.findById(userId);
+    if (user?.profileType === ProfileType.INDIVIDUAL) {
+      return;
+    }
+
+    return this.userRepository.update(userId, { isVerified: true });
+  }
+
+  async markAsUnverifiedUser(userId: string) {
+    return this.userRepository.update(userId, { isVerified: false });
+  }
+
+  async findById(userId: string) {
+    return this.userRepository.findById(userId);
+  }
+
   async updateUser(
     userId: string,
     user: Partial<UserDocument>,
@@ -83,12 +115,33 @@ export class UserService {
     return this.userRepository.update(userId, { ...user });
   }
 
+  async validateEmailUniqueness(email: string, userId?: string) {
+    const user = await this.getUserByEmail(email);
+    if (user) {
+      if (userId && user._id.toString() === userId) {
+        return;
+      }
+
+      throw new ConflictException('Phone is already in use');
+    }
+  }
+
+  async validatePhoneUniqueness(phone: string, userId?: string) {
+    const user = await this.getUserByPhone(phone);
+
+    if (user) {
+      if (userId && user._id.toString() === userId) {
+        return;
+      }
+
+      throw new ConflictException('Email is already in use');
+    }
+  }
+
   async updateUserProfile(
     userId: string,
     user: UpdateUserDto,
   ): Promise<UserDocument> {
-    console.log('@1........', JSON.stringify(user, null, 2));
-
     const updatePayload: any = {
       displayName: user.displayName,
       username: user.username,
@@ -96,8 +149,18 @@ export class UserService {
       profileType: user.profileType,
       attributes: user.attributes,
       social: user.social,
+      expoPushToken: user.expoPushToken,
+      biography: user.biography,
     };
-    console.log('@updatePayload....', updatePayload);
+
+    if (user.email) {
+      await this.validateEmailUniqueness(user.email, userId);
+      updatePayload.email = user.email;
+    }
+    if (user.phone) {
+      await this.validatePhoneUniqueness(user.phone, userId);
+      updatePayload.phone = user.phone;
+    }
 
     if (user.location) {
       updatePayload.location = {
@@ -106,6 +169,39 @@ export class UserService {
       };
     }
     const updatedUser = await this.userRepository.update(userId, updatePayload);
+    return updatedUser;
+  }
+
+  async generateUsername() {
+    const username = `fltr_${Math.floor(Math.random() * 20000)}`
+    const user = await this.userRepository.findByUsername(username);
+    if (user) {
+      return this.generateUsername();
+    }
+
+    return username;
+  }
+
+  async updateReferralUsername(
+    userId: string,
+    input: UpdateReferralUsernameDto,
+  ): Promise<UserDocument> {
+    if (!input.referralUsername) {
+      await this.boostService.assignReferralBoost(userId);
+      return
+    }
+
+    const referralUser = await this.userRepository.findByUsername(input.referralUsername);
+    if (!referralUser) {
+      await this.boostService.assignReferralBoost(userId);
+      return
+    }
+
+    const updatedUser = await this.userRepository.update(userId, {
+      referralUsername: input.referralUsername,
+    });
+    await this.boostService.assignReferralBoost(userId, referralUser._id.toString());
+
     return updatedUser;
   }
 
@@ -151,6 +247,63 @@ export class UserService {
     return this.userRepository.findAll();
   }
 
+  async getUsersWithPagination(
+    query: GetUsersWithPaginationQueryInput,
+  ): Promise<PaginatedResultDto<UserDocument>> {
+    const queryBuilder: Record<string, any> = {};
+    if (query.searchQuery) {
+      queryBuilder.$or = [
+        { username: { $regex: query.searchQuery, $options: 'i' } },
+        { displayName: { $regex: query.searchQuery, $options: 'i' } },
+        { email: { $regex: query.searchQuery, $options: 'i' } },
+        { phone: { $regex: query.searchQuery, $options: 'i' } },
+      ];
+    }
+    if (query.emailVerified) {
+      queryBuilder.emailVerified = query.emailVerified === 'true';
+    }
+    if (query.phoneVerified) {
+      queryBuilder.phoneVerified = query.phoneVerified === 'true';
+    }
+    if (query.profileType) {
+      queryBuilder.profileType = query.profileType;
+    }
+    if (query.status) {
+      queryBuilder.status = query.status;
+    }
+    if (query.state) {
+      queryBuilder.businessState = { $regex: query.state, $options: 'i' };
+    }
+    if (query.category) {
+      queryBuilder.businessCategory = { $regex: query.category, $options: 'i' };
+    }
+
+    const result = await this.userRepository.findWithPagination(
+      queryBuilder,
+      undefined,
+      {
+        page: query.page,
+        limit: query.limit,
+      },
+    );
+
+    return {
+      data: result.data,
+      total: result.total,
+      page: query.page,
+      limit: query.limit,
+    };
+  }
+
+  mapBusiness(user: User, business: Business) {
+    if (!user.businessState) user.businessState = business.state;
+    if (!user.businessCategory) user.businessCategory = business.category;
+    if (!user.businessType) user.businessType = business.businessType;
+    if (!user.businessNiche) user.businessNiche = business.niche;
+
+    return user;
+  }
+
   async getUserById(id: string): Promise<UserDocument> {
     let user = await this.userRepository.findById(id);
     if (user) {
@@ -158,9 +311,10 @@ export class UserService {
         const business = await this.businessService.getBusiness(id);
         if (business) {
           // Convert to plain object and add businessId
-          const userObject = user.toObject();
+          let userObject = user.toObject();
           (userObject as any).businessId = (business as any)._id.toString();
-          return userObject as any;
+
+          return this.mapBusiness(userObject, business) as any;
         }
       } catch (error) {
         // Business not found for this user, which is fine
@@ -288,7 +442,7 @@ export class UserService {
     return this.userRepository.delete(id);
   }
 
-  async changeBlockStatusById(id: string, input: ChangeBlockStatusInput) {
-    return this.userRepository.update(id, { blocked: input.blocked });
+  async updateUserStatusById(id: string, input: ChangeUserStatusInput) {
+    return this.userRepository.update(id, { status: input.status });
   }
 }

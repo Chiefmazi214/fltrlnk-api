@@ -13,7 +13,12 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { ChangeBlockStatusInput, UpdateUserDto } from './dtos/update-user.dto';
+import {
+  ChangeUserStatusInput,
+  GetUsersWithPaginationQueryInput,
+  UpdateReferralUsernameDto,
+  UpdateUserDto,
+} from './dtos/user.dto';
 import { UpdateLifestyleInfoDto } from './dtos/update-lifestyle-info.dto';
 import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -29,41 +34,70 @@ import { CommonParams } from 'src/common/dtos/common.dtos';
 
 @ApiTags('Users')
 @Controller('users')
-@ApiBearerAuth()
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Get()
-  async getAllUsers() {
-    return this.userService.getAllUsers();
+  async getAllUsers(@Query() query: GetUsersWithPaginationQueryInput) {
+    return this.userService.getUsersWithPagination(query);
+  }
+
+  @Get('admin')
+  @UseGuards(AuthGuard)
+  @Roles(RoleEnum.ADMIN)
+  @ApiBearerAuth()
+  async getUsersWithPagination(
+    @Query() query: GetUsersWithPaginationQueryInput,
+  ) {
+    return this.userService.getUsersWithPagination(query);
   }
 
   @Delete(':id')
   @UseGuards(AuthGuard)
   @Roles(RoleEnum.ADMIN)
+  @ApiBearerAuth()
   async deleteUserById(@Param() params: CommonParams) {
     return this.userService.deleteUserById(params.id);
   }
 
-  @Put('block/:id')
+  @Put('status/:id')
   @UseGuards(AuthGuard)
   @Roles(RoleEnum.ADMIN)
-  async changeBlockStatusById(
+  @ApiBearerAuth()
+  async updateUserStatusById(
     @Param() params: CommonParams,
-    @Body() input: ChangeBlockStatusInput,
+    @Body() input: ChangeUserStatusInput,
   ) {
-    return this.userService.changeBlockStatusById(params.id, input);
+    return this.userService.updateUserStatusById(params.id, input);
   }
 
   @Put('update')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async updateUser(@Body() user: UpdateUserDto, @Req() req: Request) {
     return this.userService.updateUserProfile(req.user._id, user);
+  }
+
+  @Put('update/referral-username')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async updateReferralUsername(
+    @Body() input: UpdateReferralUsernameDto,
+    @Req() req: Request,
+  ) {
+    return this.userService.updateReferralUsername(req.user?._id, input);
+  }
+
+  @Get('generate-username')
+  async generateUsername() {
+    const username = await this.userService.generateUsername();
+    return { username };
   }
 
   @Put('update/profile-image')
   @UseInterceptors(FileInterceptor('attachment'))
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async updateUserProfileImage(
     @UploadedFile() attachment: Express.Multer.File,
     @Req() req: Request,
@@ -73,6 +107,7 @@ export class UserController {
 
   @Put('lifestyle-info')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Update user lifestyle information',
     description:
@@ -121,6 +156,7 @@ export class UserController {
 
   @Get('lifestyle-info')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get user lifestyle information',
     description:
@@ -162,13 +198,14 @@ export class UserController {
 
   @Get('me')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async getMe(@Req() req: Request) {
     return this.userService.getMe(req.user._id);
   }
 
   @Get(`/:id`)
-  async getUserById(@Param('id') id: string) {
-    return this.userService.getUserById(id);
+  async getUserById(@Param() params: CommonParams) {
+    return this.userService.getUserById(params.id);
   }
 
   @Get('check-username/:username')

@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { BusinessRepositoryInterface } from './repositories/abstract/business.repository-interface';
 import { CreateBusinessDto } from './dtos/create-business.dto';
 import { Business, BusinessDocument } from './models/business.model';
@@ -7,7 +7,8 @@ import mongoose from 'mongoose';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { AttachmentService } from 'src/attachment/attachment.service';
-import { types } from 'util';
+import { GetBusinessesWithPaginationQueryInput } from './dtos/business.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class BusinessService {
@@ -15,7 +16,8 @@ export class BusinessService {
     @Inject(BusinessRepositoryInterface)
     private businessRepository: BusinessRepositoryInterface,
     private attachmentService: AttachmentService,
-  ) {}
+    @Inject(forwardRef(() => UserService)) private readonly userService: UserService
+  ) { }
 
   private convertWorkingHoursToMap(workingHours: any): Map<string, any> {
     if (!workingHours) return new Map();
@@ -78,6 +80,13 @@ export class BusinessService {
       throw new NotFoundException('Failed to update business');
     }
 
+    await this.userService.updateUser(updatedBusiness.user._id.toString(), {
+      businessType: updatedBusiness?.businessType,
+      businessNiche: updatedBusiness?.niche,
+      businessState: updatedBusiness?.state,
+      businessCategory: updatedBusiness?.category
+    });
+
     return updatedBusiness.populate(
       'user',
       'username email profileImage profileType',
@@ -107,7 +116,7 @@ export class BusinessService {
       {
         path: 'user',
         select:
-          'username email profileImage attributes displayName location lifestyleInfo isOnline profileType businessType',
+          'username email profileImage attributes displayName location lifestyleInfo isOnline profileType businessType businessAddress',
       },
     ]);
     if (!business) {
@@ -119,17 +128,44 @@ export class BusinessService {
       business.user._id.toString(),
     );
 
-    // Add attachments to the business object
-    return {
-      ...business.toObject(),
-      attachments,
-    } as any;
+    business['_doc'].attachments = attachments;
+    return business
   }
 
   async getBusinesses(
     paginationDto: PaginationDto,
+    searchQuery?: string,
   ): Promise<PaginatedResultDto<Business>> {
     const { page = 1, limit = 10 } = paginationDto;
+
+    // Use the new getAll method if searchQuery is provided
+    if (searchQuery) {
+      const { data, total } = await this.businessRepository.getAll(page, limit, searchQuery);
+
+      // Fetch attachments for each business
+      const businessesWithAttachments = await Promise.all(
+        data.map(async (business: any) => {
+          if (business.user && business.user._id) {
+            const attachments = await this.attachmentService.getAttachmentsByUser(
+              business.user._id.toString(),
+            );
+            return {
+              ...business,
+              attachments,
+            };
+          }
+          return business;
+        }),
+      );
+
+      return {
+        data: businessesWithAttachments as any,
+        total,
+        page,
+        limit,
+      };
+    }
+
     const skip = (page - 1) * limit;
     const [businesses, total] = await Promise.all([
       this.businessRepository.findAll(
@@ -174,29 +210,32 @@ export class BusinessService {
     latitude: number,
     longitude: number,
     maxDistance: number,
-    businessType: string,
+    businessTypes: string[],
     page: number,
     limit: number,
+    searchQuery?: string,
   ): Promise<PaginatedResultDto<BusinessDocument>> {
     console.log({
       latitude,
       longitude,
       maxDistance,
-      businessType,
+      businessTypes,
       page,
       limit,
+      searchQuery,
     });
     const { data, total } = await this.businessRepository.findNearby(
       latitude,
       longitude,
       maxDistance,
-      businessType,
+      businessTypes,
       page,
       limit,
+      searchQuery,
     );
     console.log('@1...data.', data.length);
     console.log('@2...total.', total);
-    console.log('@3...type', businessType);
+    console.log('@3...type', businessTypes);
     return {
       data,
       total,
@@ -244,6 +283,51 @@ export class BusinessService {
       total,
       page,
       limit,
+    };
+  }
+
+  async getBusinessesWithPagination(
+    query: GetBusinessesWithPaginationQueryInput,
+  ): Promise<PaginatedResultDto<BusinessDocument>> {
+    const queryBuilder: Record<string, any> = {};
+
+    if (query.searchQuery) {
+      queryBuilder.$or = [
+        { companyName: { $regex: query.searchQuery, $options: 'i' } },
+        { category: { $regex: query.searchQuery, $options: 'i' } },
+        { niche: { $regex: query.searchQuery, $options: 'i' } },
+      ];
+    }
+
+    if (query.category) {
+      queryBuilder.category = { $regex: query.category, $options: 'i' };
+    }
+
+    if (query.state) {
+      queryBuilder.state = { $regex: query.state, $options: 'i' };
+    }
+
+    const skip = (query.page - 1) * query.limit;
+    const [businesses, total] = await Promise.all([
+      this.businessRepository.findAll(
+        queryBuilder,
+        [
+          {
+            path: 'user',
+            select:
+              'username email profileImage attributes displayName location lifestyleInfo isOnline profileType businessType status',
+          },
+        ],
+        { skip, limit: query.limit },
+      ),
+      this.businessRepository.count(queryBuilder),
+    ]);
+
+    return {
+      data: businesses,
+      total,
+      page: query.page,
+      limit: query.limit,
     };
   }
 }

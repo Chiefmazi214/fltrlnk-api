@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConnectionService } from './connection.service';
 import { ConnectionController } from './connection.controller';
 import { ConnectionRepository } from './repositories/mongoose/connection.repository.mongoose';
@@ -11,31 +11,39 @@ import { Follow, FollowSchema } from './models/follow.model';
 import { UserModule } from 'src/user/user.module';
 import { FollowService } from './follow.service';
 import { ChatModule } from 'src/chat/chat.module';
-import { NotificationModule } from 'src/notification/notification.module';
+import { LikeRepository } from './repositories/mongoose/like.repository.mongoose';
+import { LikeRepositoryInterface } from './repositories/abstract/like.repository-interface';
+import { LikeService } from './like.service';
+import { Like, LikeSchema } from './models/like.model';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Connection.name, schema: ConnectionSchema },
-      { name: Follow.name, schema: FollowSchema }
+      { name: Follow.name, schema: FollowSchema },
+      { name: Like.name, schema: LikeSchema },
     ]),
     UserModule,
-    ChatModule,
-    NotificationModule
+    forwardRef(() => ChatModule),
   ],
-  exports: [ConnectionService, FollowService],
+  exports: [ConnectionService, FollowService, LikeService],
   providers: [
-    ConnectionService, 
-    FollowService, 
+    ConnectionService,
+    FollowService,
+    LikeService,
     {
       provide: ConnectionRepositoryInterface,
       useClass: ConnectionRepository,
     },
     {
+      provide: LikeRepositoryInterface,
+      useClass: LikeRepository,
+    },
+    {
       provide: FollowRepositoryInterface,
       useClass: FollowRepository,
-    }
+    },
   ],
-  controllers: [ConnectionController]
+  controllers: [ConnectionController],
 })
 export class ConnectionModule {}

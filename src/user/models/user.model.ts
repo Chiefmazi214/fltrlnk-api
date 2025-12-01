@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { Role } from './role.model';
 import { LifestyleInfo, LifestyleInfoDocument } from './lifestyle-info.model';
+import { UserStatus } from '../user.enum';
 
 @Schema({ _id: false })
 export class UserLocation {
@@ -46,6 +47,15 @@ export class SocialLinks {
 
   @Prop({ required: false })
   facebook: string;
+
+  @Prop({ required: false })
+  external1: string;
+
+  @Prop({ required: false })
+  external2: string;
+
+  @Prop({ required: false })
+  external3: string;
 }
 
 @Schema({ collection: 'users', timestamps: true })
@@ -53,8 +63,8 @@ export class User {
   @Prop({ required: false })
   name: string;
 
-  @Prop({ required: false, default: false })
-  blocked: boolean;
+  @Prop({ type: String, enum: UserStatus, default: UserStatus.ACTIVE })
+  status: UserStatus;
 
   @Prop({ required: false, unique: true, sparse: true })
   email: string;
@@ -73,6 +83,9 @@ export class User {
 
   @Prop({ required: false, default: false })
   phoneVerified: boolean;
+
+  @Prop({ required: false, default: false })
+  isVerified: boolean; // when it have some boosts
 
   @Prop({ required: false })
   password: string;
@@ -111,6 +124,9 @@ export class User {
   @Prop({ required: false, type: Types.ObjectId, ref: 'Attachment' })
   profileImage: any;
 
+  @Prop({ required: false })
+  biography: string
+
   @Prop({
     type: SocialLinks,
     required: false,
@@ -120,8 +136,14 @@ export class User {
   @Prop({ required: false, default: false })
   isOnline: boolean;
 
+  @Prop({ required: false })
+  expoPushToken: string;
+
   @Prop({ required: false, type: String })
   businessAddress: string;
+
+  @Prop({ required: false, type: Boolean, default: false })
+  pregenerated: boolean;
 
   @Prop({ required: false, type: String })
   businessCity: string;
@@ -133,6 +155,9 @@ export class User {
   businessType: string;
   @Prop({ required: false, type: String })
   businessNiche: string;
+
+  @Prop({ required: false, type: String })
+  referralUsername: string;
 }
 
 export type UserDocument = HydratedDocument<User>;

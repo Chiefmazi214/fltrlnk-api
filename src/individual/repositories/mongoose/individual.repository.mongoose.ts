@@ -14,10 +14,29 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
         return this.individualModel.aggregate(pipeline).exec();
     }
 
-    async findNearby(latitude: number, longitude: number, maxDistance: number, page: number, limit: number): Promise<PaginatedResultDto<Individual>> {
+    async findNearby(latitude: number, longitude: number, maxDistance: number, page: number, limit: number, searchQuery?: string, lifestyleCategories?: string[]): Promise<PaginatedResultDto<Individual>> {
         const skip = (page - 1) * limit;
-        
-        const pipeline = [
+
+        const matchConditions: any = {
+            'user.location': {
+                $geoWithin: {
+                    $centerSphere: [
+                        [longitude, latitude],
+                        maxDistance / 3963.2 // Convert miles to radians (Earth radius in miles)
+                    ]
+                }
+            },
+            $or: [
+                { 'user.isVerified': true },
+                { 'user.pregenerated': true }
+            ]
+        };
+
+        if (searchQuery) {
+            matchConditions['user.displayName'] = { $regex: searchQuery, $options: 'i' };
+        }
+
+        const pipeline: any[] = [
             {
                 $lookup: {
                     from: 'users',
@@ -29,17 +48,42 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
             {
                 $unwind: '$user'
             },
-            {
-                $match: {
-                    'user.location': {
-                        $geoWithin: {
-                            $centerSphere: [
-                                [longitude, latitude],
-                                maxDistance / 3963.2 // Convert miles to radians (Earth radius in miles)
-                            ]
+        ];
+
+        // Add lifestyle info lookup and category filtering if categories are provided
+        if (lifestyleCategories && lifestyleCategories.length > 0) {
+            pipeline.push(
+                {
+                    $lookup: {
+                        from: 'lifestyle-info',
+                        localField: 'user.lifestyleInfo',
+                        foreignField: '_id',
+                        as: 'user.lifestyleInfoPopulated'
+                    }
+                },
+                {
+                    $match: {
+                        ...matchConditions,
+                        'user.lifestyleInfoPopulated.category': {
+                            $in: lifestyleCategories
                         }
                     }
                 }
+            );
+        } else {
+            pipeline.push({
+                $match: matchConditions
+            });
+        }
+
+        pipeline.push(
+            {
+                $addFields: {
+                    randomOrder: { $rand: {} }
+                }
+            },
+            {
+                $sort: { randomOrder: 1 }
             },
             {
                 $project: {
@@ -56,7 +100,9 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
                     'user.displayName': 1,
                     'user.location': 1,
                     'user.lifestyleInfo': 1,
-                    'user.isOnline': 1
+                    'user.isOnline': 1,
+                    'user.isVerified': 1,
+                    'user.pregenerated': 1,
                 }
             },
             {
@@ -68,9 +114,9 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
                     ]
                 }
             }
-        ];
+        );
 
-        const [result] = await this.individualModel.aggregate(pipeline).exec();
+        const [result] = await this.individualModel.aggregate(pipeline as any).exec();
         const total = result.metadata[0]?.total || 0;
 
         return { data: result.data, total, page, limit };
@@ -122,7 +168,7 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
                     'user.displayName': 1,
                     'user.location': 1,
                     'user.lifestyleInfo': 1,
-                    'user.isOnline': 1
+                    'user.isOnline': 1,
                 }
             },
             {
@@ -165,5 +211,68 @@ export class IndividualRepository extends MongooseRepositoryBase<IndividualDocum
         ]);
 
         return { data, total, page, limit };
+    }
+
+
+    async getAll(page: number, limit: number, searchQuery?: string): Promise<PaginatedResultDto<Individual>> {
+        const skip = (page - 1) * limit;
+
+        const matchConditions: any = {};
+
+        // Add searchQuery filter if provided
+        if (searchQuery) {
+            matchConditions['user.displayName'] = { $regex: searchQuery, $options: 'i' };
+        }
+
+        const pipeline = [
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            {
+                $unwind: '$user'
+            },
+            ...(searchQuery ? [{
+                $match: matchConditions
+            }] : []),
+            {
+                $project: {
+                    _id: 1,
+                    biography: 1,
+                    mapDiscovery: 1,
+                    fltrlScreen: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                    'user._id': 1,
+                    'user.username': 1,
+                    'user.email': 1,
+                    'user.profileImage': 1,
+                    'user.attributes': 1,
+                    'user.displayName': 1,
+                    'user.location': 1,
+                    'user.lifestyleInfo': 1,
+                    'user.isOnline': 1,
+                    'user.businessType': 1,
+                }
+            },
+            {
+                $facet: {
+                    metadata: [{ $count: 'total' }],
+                    data: [
+                        { $skip: skip },
+                        { $limit: limit }
+                    ]
+                }
+            }
+        ];
+
+        const [result] = await this.individualModel.aggregate(pipeline).exec();
+        const total = result.metadata[0]?.total || 0;
+
+        return { data: result.data, total, page, limit };
     }
 }
