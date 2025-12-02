@@ -61,11 +61,7 @@ export class NotificationService {
     if (input.recipientId) {
       const user = await this.userService.getUserById(input.recipientId);
       if (input.type === NotificationType.EMAIL) {
-        this.mailService.sendMail({
-          email: user?.email,
-          subject: input.title,
-          html: `<p>${input.message}</p>`,
-        });
+        this.mailService.sendNotification([user?.email], input.title, input.message);
       } else if (user?.expoPushToken) {
         await this.sendExpoPushNotification(
           user.expoPushToken,

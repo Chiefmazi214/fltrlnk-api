@@ -27,7 +27,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly verificationService: VerificationService,
-  ) {}
+  ) { }
 
   async register(registerDto: RegisterDto) {
     const { email, phone, password } = registerDto;
@@ -84,6 +84,8 @@ export class AuthService {
   }
 
   async sendEmailVerificationOtp(email: string) {
+    console.log("------");
+
     const user = await this.userService.getUserByEmail(email);
     if (!user) throw new UnauthorizedException();
     await this.verificationService.createVerificationCode(
