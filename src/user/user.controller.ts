@@ -49,7 +49,8 @@ export class UserController {
     @Req() req: Request,
     @Param() params: CommonParams,
   ) {
-    return this.userService.blockUser(req.user._id, params.id);
+    await this.userService.blockUser(req.user._id, params.id);
+    return { message: 'User blocked successfully' };
   }
 
   @Put('unblock/:id')
@@ -59,7 +60,8 @@ export class UserController {
     @Req() req: Request,
     @Param() params: CommonParams,
   ) {
-    return this.userService.unblockUser(req.user._id, params.id);
+    await this.userService.unblockUser(req.user._id, params.id);
+    return { message: 'User unblocked successfully' };
   }
 
   @Get('blocked')
