@@ -12,7 +12,7 @@ async function bootstrap() {
       credentials: true,
       allowedHeaders: 'Content-Type,Accept,Authorization',
     },
-  });
+  }); 
 
   app.useWebSocketAdapter(new IoAdapter(app));
 
