@@ -145,6 +145,9 @@ export class User {
   @Prop({ required: false, type: Boolean, default: false })
   pregenerated: boolean;
 
+  @Prop({ required: false, type: [mongoose.Types.ObjectId], ref: 'User' })
+  blockedUsers: string[];
+
   @Prop({ required: false, type: String })
   businessCity: string;
   @Prop({ required: false, type: String })

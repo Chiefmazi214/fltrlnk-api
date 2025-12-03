@@ -8,7 +8,8 @@ import { PopulationOptions } from 'src/common/repository/abstract/base.repositor
 
 export class UserRepository
   extends MongooseRepositoryBase<UserDocument>
-  implements UserRepositoryInterface {
+  implements UserRepositoryInterface
+{
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {
     super(userModel);
   }
@@ -46,8 +47,8 @@ export class UserRepository
     populate: PopulationOptions[],
     pagination: PaginationDto,
   ): Promise<{ data: UserDocument[]; total: number }> {
-    const page = pagination.page ? +pagination.page : 1
-    const limit = pagination.limit ? +pagination.limit : 10
+    const page = pagination.page ? +pagination.page : 1;
+    const limit = pagination.limit ? +pagination.limit : 10;
 
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
@@ -63,7 +64,26 @@ export class UserRepository
     return { data, total };
   }
 
-  async findByUsername(username: string, populate?: PopulationOptions[]): Promise<UserDocument | null> {
+  async findByUsername(
+    username: string,
+    populate?: PopulationOptions[],
+  ): Promise<UserDocument | null> {
     return this.userModel.findOne({ username }).populate(populate).exec();
+  }
+
+  async findByIdWithSelect(
+    id: string,
+    select?: string,
+    populate?: PopulationOptions[],
+  ): Promise<UserDocument | null> {
+    let query = this.userModel.findById(id);
+    if (populate) {
+      query.populate(populate);
+    }
+    if (select) {
+      query.select(select);
+    }
+
+    return query.exec();
   }
 }

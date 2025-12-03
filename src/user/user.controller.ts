@@ -42,6 +42,33 @@ export class UserController {
     return this.userService.getUsersWithPagination(query);
   }
 
+  @Put('block/:id')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async blockUser(
+    @Req() req: Request,
+    @Param() params: CommonParams,
+  ) {
+    return this.userService.blockUser(req.user._id, params.id);
+  }
+
+  @Put('unblock/:id')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async unblockUser(
+    @Req() req: Request,
+    @Param() params: CommonParams,
+  ) {
+    return this.userService.unblockUser(req.user._id, params.id);
+  }
+
+  @Get('blocked')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async getBlockedUsers(@Req() req: Request) {
+    return this.userService.getBlockedUsers(req.user._id);
+  }
+
   @Get('admin')
   @UseGuards(AuthGuard)
   @Roles(RoleEnum.ADMIN)

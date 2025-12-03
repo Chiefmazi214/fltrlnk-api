@@ -40,8 +40,9 @@ export class UserService {
     private readonly attachmentService: AttachmentService,
     private readonly lifestyleInfoService: LifestyleInfoService,
     private readonly boostService: BoostService,
-    @Inject(forwardRef(() => BusinessService)) private readonly businessService: BusinessService,
-  ) { }
+    @Inject(forwardRef(() => BusinessService))
+    private readonly businessService: BusinessService,
+  ) {}
 
   async getUserByEmail(email: string): Promise<UserDocument> {
     return this.userRepository.findOne({ email });
@@ -173,7 +174,7 @@ export class UserService {
   }
 
   async generateUsername() {
-    const username = `fltr_${Math.floor(Math.random() * 20000)}`
+    const username = `fltr_${Math.floor(Math.random() * 20000)}`;
     const user = await this.userRepository.findByUsername(username);
     if (user) {
       return this.generateUsername();
@@ -188,19 +189,24 @@ export class UserService {
   ): Promise<UserDocument> {
     if (!input.referralUsername) {
       await this.boostService.assignReferralBoost(userId);
-      return
+      return;
     }
 
-    const referralUser = await this.userRepository.findByUsername(input.referralUsername);
+    const referralUser = await this.userRepository.findByUsername(
+      input.referralUsername,
+    );
     if (!referralUser) {
       await this.boostService.assignReferralBoost(userId);
-      return
+      return;
     }
 
     const updatedUser = await this.userRepository.update(userId, {
       referralUsername: input.referralUsername,
     });
-    await this.boostService.assignReferralBoost(userId, referralUser._id.toString());
+    await this.boostService.assignReferralBoost(
+      userId,
+      referralUser._id.toString(),
+    );
 
     return updatedUser;
   }
@@ -245,6 +251,51 @@ export class UserService {
 
   async getAllUsers(): Promise<UserDocument[]> {
     return this.userRepository.findAll();
+  }
+
+  async blockUser(userId: string, blockedUserId: string) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.blockedUsers && user.blockedUsers.includes(blockedUserId)) {
+      throw new ConflictException('User already blocked');
+    }
+    if (!user.blockedUsers) {
+      user.blockedUsers = [blockedUserId];
+    } else {
+      user.blockedUsers.push(blockedUserId);
+    }
+
+    await user.save();
+  }
+
+  async unblockUser(userId: string, blockedUserId: string) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.blockedUsers =
+      user.blockedUsers?.filter(
+        (id) => id?.toString() !== blockedUserId?.toString(),
+      ) || [];
+    await user.save();
+  }
+
+  async getBlockedUsers(userId: string) {
+    const user = await this.userRepository.findByIdWithSelect(
+      userId,
+      'blockedUsers',
+      [
+        {
+          path: 'blockedUsers',
+          select: 'name displayName email profileImage username',
+          populate: [{ path: 'profileImage', select: 'url' }],
+        },
+      ] as any,
+    );
+    return user?.blockedUsers;
   }
 
   async getUsersWithPagination(

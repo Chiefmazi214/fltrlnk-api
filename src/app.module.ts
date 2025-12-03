@@ -25,6 +25,7 @@ import { BoostModule } from './boost/boost.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { SettingsModule } from './settings/settings.module';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { SettingsModule } from './settings/settings.module';
     AnalyticsModule,
     AuditLogModule,
     SettingsModule,
+    ReportModule,
   ],
   controllers: [AppController],
   providers: [AppService],
