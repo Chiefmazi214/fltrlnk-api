@@ -11,7 +11,7 @@ async function bootstrap() {
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       credentials: true,
       allowedHeaders: 'Content-Type,Accept,Authorization',
-    },
+    }, 
   }); 
 
   app.useWebSocketAdapter(new IoAdapter(app));
