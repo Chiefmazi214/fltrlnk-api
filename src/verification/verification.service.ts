@@ -43,11 +43,7 @@ export class VerificationService {
       userId: user._id.toString(),
     });
     if (email) {
-      await this.mailService.sendMail({
-        email: email,
-        subject: 'Verification Code',
-        html: `<p>Your verification code is <b>${code}</b>. It will expire in 5 minutes.</p>`,
-      });
+      await this.mailService.sendVerificationCode(email, code);
     } else if (phone) {
       await this.smsService.sendSms({
         to: phone,

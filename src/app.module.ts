@@ -1,5 +1,3 @@
-import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
-import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -39,26 +37,6 @@ import { SettingsModule } from './settings/settings.module';
       global: true,
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1d' },
-    }),
-    MailerModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: async (
-        configService: ConfigService,
-      ): Promise<MailerOptions> => ({
-        transport: {
-          host: configService.get('EMAIL_HOST'),
-          port: +configService.get('EMAIL_PORT'),
-          secure: configService.get('EMAIL_SECURE') === 'true',
-          auth: {
-            user: configService.get('EMAIL_USER'),
-            pass: configService.get('EMAIL_PASSWORD'),
-          },
-        },
-        template: {
-          dir: process.cwd() + '/templates/',
-          adapter: new EjsAdapter(),
-        },
-      }),
     }),
     CommonModule,
     UserModule,
