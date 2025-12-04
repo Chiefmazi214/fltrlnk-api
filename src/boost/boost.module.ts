@@ -11,6 +11,7 @@ import { SubscriptionRepository } from './repositories/subscription.repository';
 import { SubscriptionService } from './subscription.service';
 import { TransactionService } from './transaction.service';
 import { Transaction, TransactionSchema } from './models/transactions.model';
+import { PromoCode, PromoCodeSchema } from './models/promo-code.model';
 
 @Global()
 @Module({
@@ -22,6 +23,7 @@ import { Transaction, TransactionSchema } from './models/transactions.model';
       { name: ActiveBoost.name, schema: ActiveBoostSchema },
       { name: Subscription.name, schema: SubscriptionSchema },
       { name: Transaction.name, schema: TransactionSchema },
+      { name: PromoCode.name, schema: PromoCodeSchema },
     ]),
   ],
   controllers: [BoostController],
