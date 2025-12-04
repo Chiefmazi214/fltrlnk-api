@@ -12,6 +12,7 @@ import {
   SubscriptionType,
   SubscriptionStatus,
   SubscriptionPeriod,
+  PromoCodeStatus,
 } from './boost.enum';
 import { RevenueCatWebhookEvent } from './dto/webhook.dto';
 import { UserService } from 'src/user/user.service';
@@ -21,6 +22,8 @@ import { UserTier } from 'src/user/user.enum';
 import { Transaction, TransactionDocument } from './models/transactions.model';
 import { InjectModel } from '@nestjs/mongoose';
 import { TransactionType } from './boost.enum';
+import { PromoCode, PromoCodeDocument } from './models/promo-code.model';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SubscriptionService {
@@ -30,8 +33,11 @@ export class SubscriptionService {
     private readonly subscriptionRepository: SubscriptionRepository,
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<TransactionDocument>,
+    @InjectModel(PromoCode.name)
+    private readonly promoCodeModel: Model<PromoCodeDocument>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    private readonly configService: ConfigService,
   ) {}
 
   async handleSubscriptionWebhook(event: RevenueCatWebhookEvent) {
@@ -375,6 +381,38 @@ export class SubscriptionService {
   async hasActiveSubscription(userId: string): Promise<boolean> {
     return this.subscriptionRepository.hasActiveSubscription(userId);
   }
+
+  async applyPromoCode(userId: string, code: string) {
+    const promoCode = await this.promoCodeModel.findOne({ code });
+    if (!promoCode) {
+      throw new NotFoundException('Invalid promo code');
+    }
+
+    if (promoCode.status === PromoCodeStatus.USED) {
+      throw new BadRequestException('Promo code already used');
+    }
+
+    await this.subscriptionRepository.updateAllByUserId(userId, {
+      status: SubscriptionStatus.EXPIRED,
+      endDate: new Date(Date.now()),
+      willRenew: false,
+    });
+
+    await this.subscriptionRepository.create({
+      revenueCatId: promoCode.id,
+      user: userId,
+      subscriptionType: SubscriptionType.PRO,
+      subscriptionPeriod: SubscriptionPeriod.ALL_TIME,
+      startDate: new Date(),
+      renewalDate: new Date(),
+      productId: this.configService.get('REVENUECAT_PRO_PRODUCT_ID'),
+      willRenew: false,
+    });
+
+    promoCode.status = PromoCodeStatus.USED;
+    await promoCode.save();
+  }
+
 
   // run cron job every day and check if endDate is in the past and status is active and update the status to expired and update the user tier to free
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)

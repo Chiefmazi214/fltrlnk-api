@@ -25,7 +25,10 @@ import { SubscriptionService } from './subscription.service';
 import { TransactionService } from './transaction.service';
 import { CommonParams } from 'src/common/dtos/common.dtos';
 import { GiveBoostsDto } from './dto/boosts.dto';
-import { GetAllSubscriptionsDto } from './dto/subscription.dto';
+import {
+  GetAllSubscriptionsDto,
+  ApplyPromoCodeDto,
+} from './dto/subscription.dto';
 import { GetAllTransactionsDto } from './dto/transaction.dto';
 
 @ApiTags('boost')
@@ -75,6 +78,22 @@ export class BoostController {
   @Roles(RoleEnum.ADMIN)
   getRevenueCatById(@Param('revenuecatId') revenuecatId: string) {
     return this.boostService.getRevenueCatById(revenuecatId);
+  }
+
+  @Post('promo-code/apply')
+  @UseGuards(AuthGuard)
+  async applyPromoCode(
+    @Req() req: Request,
+    @Body() applyPromoCodeDto: ApplyPromoCodeDto,
+  ) {
+    await this.subscriptionService.applyPromoCode(
+      req.user?._id,
+      applyPromoCodeDto.code,
+    );
+
+    return {
+      message: 'Promo code applied successfully',
+    };
   }
 
   // RevenueCat Webhook endpoint (no auth required for webhooks)

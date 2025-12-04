@@ -35,4 +35,10 @@ export enum SubscriptionPeriod {
   MONTHLY = 'monthly',
   SIX_MONTHS = '6_months',
   ANNUAL = 'annual',
+  ALL_TIME = 'all_time',
+}
+
+export enum PromoCodeStatus {
+  ACTIVE = 'active',
+  USED = 'used',
 }

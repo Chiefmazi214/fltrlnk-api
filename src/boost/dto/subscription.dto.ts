@@ -126,3 +126,9 @@ export class GetAllSubscriptionsDto extends PaginationDto {
   @IsEnum(SubscriptionType)
   type?: SubscriptionType;
 }
+
+export class ApplyPromoCodeDto {
+  @ApiProperty()
+  @IsString()
+  code: string;
+}
