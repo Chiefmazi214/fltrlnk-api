@@ -136,6 +136,8 @@ export interface RevenueCatWebhookEvent {
   tax_percentage: number;
   transaction_id: string;
   type: string;
+  will_renew?: boolean;
+  is_paid?: boolean;
 }
 
 // {

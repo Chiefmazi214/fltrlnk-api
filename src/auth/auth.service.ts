@@ -29,6 +29,12 @@ export class AuthService {
     private readonly verificationService: VerificationService,
   ) { }
 
+  async updateLastActionDate(userId: string) {
+    return this.userService.updateUser(userId, {
+      lastActionDate: new Date(),
+    });
+  }
+
   async register(registerDto: RegisterDto) {
     const { email, phone, password } = registerDto;
     if (email && phone) {

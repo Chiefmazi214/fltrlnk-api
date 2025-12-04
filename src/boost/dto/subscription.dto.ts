@@ -1,6 +1,7 @@
 import { IsString, IsEnum, IsOptional, IsDate, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { SubscriptionType, SubscriptionStatus, SubscriptionPeriod } from '../models/subscription.model';
+import { SubscriptionType, SubscriptionStatus, SubscriptionPeriod } from '../boost.enum';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
 
 export class CreateSubscriptionDto {
   @ApiProperty()
@@ -42,6 +43,8 @@ export class CreateSubscriptionDto {
   @IsOptional()
   @IsBoolean()
   willRenew?: boolean;
+
+  endDate?: Date;
 }
 
 export class UpdateSubscriptionDto {
@@ -109,4 +112,17 @@ export class SubscriptionResponseDto {
 
   @ApiPropertyOptional()
   expirationDate?: Date;
+}
+
+
+export class GetAllSubscriptionsDto extends PaginationDto {
+  @ApiPropertyOptional({ enum: SubscriptionStatus })
+  @IsOptional()
+  @IsEnum(SubscriptionStatus)
+  status?: SubscriptionStatus;
+
+  @ApiPropertyOptional({ enum: SubscriptionType })
+  @IsOptional()
+  @IsEnum(SubscriptionType)
+  type?: SubscriptionType;
 }

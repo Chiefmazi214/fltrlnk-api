@@ -5,6 +5,7 @@ import { AuditLogService } from './audit-log.service';
 import { AuditLog, AuditLogSchema } from './models/audit-log.model';
 import { AuditLogRepository } from './repositories/mongoose/audit-log.repository.mongoose';
 import { AuditLogRepositoryInterface } from './repositories/abstract/audit-log.repository-interface';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Global() // Make this module global so it can be used anywhere without importing
 @Module({
@@ -12,6 +13,7 @@ import { AuditLogRepositoryInterface } from './repositories/abstract/audit-log.r
     MongooseModule.forFeature([
       { name: AuditLog.name, schema: AuditLogSchema },
     ]),
+    AuthModule,
   ],
   controllers: [AuditLogController],
   providers: [

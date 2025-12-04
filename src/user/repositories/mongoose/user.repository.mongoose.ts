@@ -86,4 +86,9 @@ export class UserRepository
 
     return query.exec();
   }
+
+  async updateByIds(userIds: string[], user: Partial<UserDocument>) {
+    const result = await this.userModel.updateMany({ _id: { $in: userIds } }, { $set: user }).exec();
+    return result.modifiedCount || 0;
+  }
 }

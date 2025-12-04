@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Put,
   Query,
   Req,
@@ -14,6 +15,7 @@ import {
 import { UserService } from './user.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import {
+  AdminUpdateUserDto,
   ChangeUserStatusInput,
   GetUsersWithPaginationQueryInput,
   UpdateReferralUsernameDto,
@@ -99,6 +101,19 @@ export class UserController {
   ) {
     return this.userService.updateUserStatusById(params.id, input);
   }
+
+  @Patch('admin-update/:id')
+  @UseGuards(AuthGuard)
+  @Roles(RoleEnum.ADMIN)
+  @ApiBearerAuth()
+  async adminUpdateUser(
+    @Param() params: CommonParams,
+    @Body() input: AdminUpdateUserDto,
+  ) {
+    return this.userService.adminUpdateUser(params.id, input);
+  }
+
+  // admin details
 
   @Put('update')
   @UseGuards(AuthGuard)
@@ -237,6 +252,14 @@ export class UserController {
     return this.userService.getUserById(params.id);
   }
 
+  @Get('admin/:id')
+  @UseGuards(AuthGuard)
+  @Roles(RoleEnum.ADMIN)
+  @ApiBearerAuth()
+  async getUserByIdForAdmin(@Param() params: CommonParams) {
+    return this.userService.getUserByIdForAdmin(params.id);
+  }
+
   @Get('check-username/:username')
   @ApiOperation({
     summary: 'Check if username is taken',
@@ -254,5 +277,23 @@ export class UserController {
   async isUsernameTaken(@Param('username') username: string) {
     const isTaken = await this.userService.isUsernameTaken(username);
     return { isTaken };
+  }
+
+  @Get('invites/top')
+  @UseGuards(AuthGuard)
+  @Roles(RoleEnum.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get top 20 invites' })
+  async getTopInvites() {
+    return this.userService.getTopInvites();
+  }
+
+  @Get('invites/all')
+  @UseGuards(AuthGuard)
+  @Roles(RoleEnum.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all invites' })
+  async getAllInvites() {
+    return this.userService.getAllInvites();
   }
 }

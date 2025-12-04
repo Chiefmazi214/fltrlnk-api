@@ -315,7 +315,7 @@ export class BusinessService {
           {
             path: 'user',
             select:
-              'username email profileImage attributes displayName location lifestyleInfo isOnline profileType businessType status',
+              'username email profileImage attributes displayName location lifestyleInfo isOnline profileType businessType status tier',
           },
         ],
         { skip, limit: query.limit },
@@ -323,11 +323,27 @@ export class BusinessService {
       this.businessRepository.count(queryBuilder),
     ]);
 
+    const mappedBusinesses = await Promise.all(
+      businesses.map(async (business) => {
+        const businessObj = business.toObject();
+        return {
+          ...businessObj,
+          status: business.user?.['status'] || 'active',
+          tier: business.user?.['tier'] || 'free',
+          userId: business.user?._id.toString(),
+        };
+      }),
+    );
+
     return {
-      data: businesses,
+      data: mappedBusinesses as any,
       total,
       page: query.page,
       limit: query.limit,
     };
+  }
+
+  async countBusinesses(query: any = {}): Promise<number> {
+    return this.businessRepository.count(query);
   }
 }

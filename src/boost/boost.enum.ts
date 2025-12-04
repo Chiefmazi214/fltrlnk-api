@@ -12,3 +12,27 @@ export enum ActiveBoostStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
 }
+
+export enum TransactionType {
+  SUBSCRIPTION = 'subscription',
+  BOOST = 'boost',
+}
+
+
+export enum SubscriptionType {
+  BASIC = 'basic',
+  PRO = 'pro',
+}
+
+export enum SubscriptionStatus {
+  ACTIVE = 'active',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
+  PAUSED = 'paused',
+}
+
+export enum SubscriptionPeriod {
+  MONTHLY = 'monthly',
+  SIX_MONTHS = '6_months',
+  ANNUAL = 'annual',
+}

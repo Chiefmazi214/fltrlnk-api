@@ -161,6 +161,12 @@ export class User {
 
   @Prop({ required: false, type: String })
   referralUsername: string;
+
+  @Prop({ required: false, type: String, enum: ['Free', 'Basic', 'Pro'], default: 'Free' })
+  tier: string;
+
+  @Prop({ required: false, type: Date })
+  lastActionDate: Date;
 }
 
 export type UserDocument = HydratedDocument<User>;

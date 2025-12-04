@@ -3,16 +3,24 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
-import { SubscriptionRepository } from '../repositories/subscription.repository';
+import { SubscriptionRepository } from './repositories/subscription.repository';
+import {} from './models/subscription.model';
 import {
   SubscriptionType,
   SubscriptionStatus,
   SubscriptionPeriod,
-} from '../models/subscription.model';
-import { RevenueCatWebhookEvent } from '../dto/webhook.dto';
+} from './boost.enum';
+import { RevenueCatWebhookEvent } from './dto/webhook.dto';
 import { UserService } from 'src/user/user.service';
-import { Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { UserTier } from 'src/user/user.enum';
+import { Transaction, TransactionDocument } from './models/transactions.model';
+import { InjectModel } from '@nestjs/mongoose';
+import { TransactionType } from './boost.enum';
 
 @Injectable()
 export class SubscriptionService {
@@ -20,6 +28,9 @@ export class SubscriptionService {
 
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
+    @InjectModel(Transaction.name)
+    private readonly transactionModel: Model<TransactionDocument>,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
   ) {}
 
@@ -55,9 +66,7 @@ export class SubscriptionService {
           break;
 
         default:
-          this.logger.warn(
-            `Unhandled subscription event type: ${event.type}`,
-          );
+          this.logger.warn(`Unhandled subscription event type: ${event.type}`);
       }
 
       await this.updateUserVerification(event.app_user_id);
@@ -72,7 +81,7 @@ export class SubscriptionService {
     }
   }
 
-  private async handleInitialPurchase(event: RevenueCatWebhookEvent) {
+  async handleInitialPurchase(event: RevenueCatWebhookEvent) {
     const { subscriptionType, subscriptionPeriod } = this.parseProductId(
       event.product_id,
     );
@@ -88,9 +97,29 @@ export class SubscriptionService {
       subscriptionPeriod,
       startDate: new Date(event.purchased_at_ms),
       renewalDate,
+      endDate: renewalDate,
       productId: event.product_id,
-      willRenew: true,
+      willRenew: event.will_renew === false ? false : true,
     });
+
+    await this.transactionModel.create({
+      revenueCatId: event.id,
+      user: event.app_user_id,
+      amount: event.price,
+      type: TransactionType.SUBSCRIPTION,
+      subscriptionType: subscriptionType,
+      date: new Date(event.purchased_at_ms),
+      store: event.store,
+      currency: event.currency,
+      currencyAmount: event.price_in_purchased_currency,
+    });
+
+    // Update user tier
+    const tier =
+      subscriptionType === SubscriptionType.BASIC
+        ? UserTier.BASIC
+        : UserTier.PRO;
+    await this.userService.updateUser(event.app_user_id, { tier });
 
     await this.userService.markAsVerifiedBusinessUser(event.app_user_id);
 
@@ -99,18 +128,18 @@ export class SubscriptionService {
     );
   }
 
-  private async handleRenewal(event: RevenueCatWebhookEvent) {
+  async handleRenewal(event: RevenueCatWebhookEvent) {
     const subscription = await this.subscriptionRepository.findByUserId(
       event.app_user_id,
+    );
+
+    const { subscriptionType, subscriptionPeriod } = this.parseProductId(
+      event.product_id,
     );
 
     if (!subscription) {
       this.logger.warn(
         `Subscription not found for renewal: ${event.app_user_id}`,
-      );
-
-      const { subscriptionType, subscriptionPeriod } = this.parseProductId(
-        event.product_id,
       );
 
       // create new subscription
@@ -120,11 +149,35 @@ export class SubscriptionService {
         subscriptionType,
         subscriptionPeriod,
         startDate: new Date(event.purchased_at_ms),
-        renewalDate: event.expiration_at_ms ? new Date(event.expiration_at_ms) : null,
+        renewalDate: event.expiration_at_ms
+          ? new Date(event.expiration_at_ms)
+          : null,
+        endDate: event.expiration_at_ms
+          ? new Date(event.expiration_at_ms)
+          : null,
         productId: event.product_id,
         willRenew: true,
       });
+
+      // Update user tier
+      const tier =
+        subscriptionType === SubscriptionType.BASIC
+          ? UserTier.BASIC
+          : UserTier.PRO;
+      await this.userService.updateUser(event.app_user_id, { tier });
     }
+
+    await this.transactionModel.create({
+      revenueCatId: event.id,
+      user: event.app_user_id,
+      amount: event.price,
+      type: TransactionType.SUBSCRIPTION,
+      subscriptionType: subscriptionType,
+      date: new Date(event.purchased_at_ms),
+      store: event.store,
+      currency: event.currency,
+      currencyAmount: event.price_in_purchased_currency,
+    });
 
     const renewalDate = event.expiration_at_ms
       ? new Date(event.expiration_at_ms)
@@ -138,12 +191,10 @@ export class SubscriptionService {
 
     await this.userService.markAsVerifiedBusinessUser(event.app_user_id);
 
-    this.logger.log(
-      `Renewal processed for subscription: ${event.app_user_id}`,
-    );
+    this.logger.log(`Renewal processed for subscription: ${event.app_user_id}`);
   }
 
-  private async handleCancellation(event: RevenueCatWebhookEvent) {
+  async handleCancellation(event: RevenueCatWebhookEvent) {
     const subscription = await this.subscriptionRepository.findByUserId(
       event.app_user_id,
     );
@@ -158,6 +209,7 @@ export class SubscriptionService {
     await this.subscriptionRepository.update(event.app_user_id, {
       status: SubscriptionStatus.CANCELLED,
       cancellationDate: new Date(event.event_timestamp_ms),
+      endDate: new Date(event.event_timestamp_ms),
       willRenew: false,
     });
 
@@ -168,7 +220,7 @@ export class SubscriptionService {
     );
   }
 
-  private async handleExpiration(event: RevenueCatWebhookEvent) {
+  async handleExpiration(event: RevenueCatWebhookEvent) {
     const subscription = await this.subscriptionRepository.findByUserId(
       event.app_user_id,
     );
@@ -182,9 +234,15 @@ export class SubscriptionService {
 
     await this.subscriptionRepository.update(event.app_user_id, {
       status: SubscriptionStatus.EXPIRED,
-      expirationDate: new Date(event.expiration_at_ms || event.event_timestamp_ms),
+      expirationDate: new Date(
+        event.expiration_at_ms || event.event_timestamp_ms,
+      ),
       endDate: new Date(event.expiration_at_ms || event.event_timestamp_ms),
       willRenew: false,
+    });
+
+    await this.userService.updateUser(event.app_user_id, {
+      tier: UserTier.FREE,
     });
 
     this.logger.log(
@@ -192,7 +250,20 @@ export class SubscriptionService {
     );
   }
 
-  private async handleUncancellation(event: RevenueCatWebhookEvent) {
+  async expireAllSubscriptions(userId: string) {
+    await this.subscriptionRepository.updateAllByUserId(userId, {
+      status: SubscriptionStatus.EXPIRED,
+      expirationDate: new Date(Date.now()),
+      endDate: new Date(Date.now()),
+      willRenew: false,
+    });
+
+    await this.userService.updateUser(userId, {
+      tier: UserTier.FREE,
+    });
+  }
+
+  async handleUncancellation(event: RevenueCatWebhookEvent) {
     const subscription = await this.subscriptionRepository.findByUserId(
       event.app_user_id,
     );
@@ -220,7 +291,7 @@ export class SubscriptionService {
     );
   }
 
-  private async handleSubscriptionPaused(event: RevenueCatWebhookEvent) {
+  async handleSubscriptionPaused(event: RevenueCatWebhookEvent) {
     const subscription = await this.subscriptionRepository.findByUserId(
       event.app_user_id,
     );
@@ -237,16 +308,14 @@ export class SubscriptionService {
       willRenew: false,
     });
 
-    this.logger.log(
-      `Pause processed for subscription: ${event.app_user_id}`,
-    );
+    this.logger.log(`Pause processed for subscription: ${event.app_user_id}`);
   }
 
   private parseProductId(productId: string): {
     subscriptionType: SubscriptionType;
     subscriptionPeriod: SubscriptionPeriod;
   } {
-    const lower = productId.toLowerCase();
+    const lower = productId?.toLowerCase() || '';
 
     let subscriptionType: SubscriptionType;
     if (lower.includes('basic')) {
@@ -271,7 +340,7 @@ export class SubscriptionService {
     return { subscriptionType, subscriptionPeriod };
   }
 
-  private async updateUserVerification(userId: string) {
+  async updateUserVerification(userId: string) {
     const user = await this.userService.findById(userId);
 
     if (!user) {
@@ -303,5 +372,29 @@ export class SubscriptionService {
 
   async hasActiveSubscription(userId: string): Promise<boolean> {
     return this.subscriptionRepository.hasActiveSubscription(userId);
+  }
+
+  // run cron job every day and check if endDate is in the past and status is active and update the status to expired and update the user tier to free
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async handleCron() {
+    const subscriptions = await this.subscriptionRepository.findAll({
+      status: SubscriptionStatus.ACTIVE,
+      endDate: { $lt: new Date() },
+    });
+
+    const userIds = subscriptions.map((subscription) =>
+      subscription.user.toString(),
+    );
+
+    await this.subscriptionRepository.updateAll(
+      { user: { $in: userIds } },
+      {
+        status: SubscriptionStatus.EXPIRED,
+        endDate: new Date(Date.now()),
+      },
+    );
+    await this.userService.updateByIds(userIds, {
+      tier: UserTier.FREE,
+    });
   }
 }

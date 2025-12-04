@@ -15,6 +15,7 @@ export enum NotificationType {
   FOLLOW = 'FOLLOW',
   CONNECTION_ACCEPTED = 'CONNECTION_ACCEPTED',
   CONNECTION_REQUEST = 'CONNECTION_REQUEST',
+  SYSTEM = 'SYSTEM',
 }
 
 @Schema({ collection: 'notifications', timestamps: true })

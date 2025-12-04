@@ -11,3 +11,9 @@ export enum ProfileType {
   BUSINESS = 'business',
   INDIVIDUAL = 'individual',
 }
+
+export enum UserTier {
+  FREE = 'free',
+  BASIC = 'basic',
+  PRO = 'pro',
+}
