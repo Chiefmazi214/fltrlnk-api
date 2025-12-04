@@ -5,7 +5,7 @@ import {
   ConflictException,
   forwardRef,
 } from '@nestjs/common';
-import { Types } from 'mongoose';
+import { FilterQuery, Types } from 'mongoose';
 import { UserRepositoryInterface } from './repositories/abstract/user.repository-interface';
 import { User, UserDocument } from './models/user.model';
 import { RoleService } from './role.service';
@@ -263,6 +263,10 @@ export class UserService {
 
   async getAllUsers(): Promise<UserDocument[]> {
     return this.userRepository.findAll();
+  }
+
+  async getUsers(query: FilterQuery<UserDocument>): Promise<UserDocument[]> {
+    return this.userRepository.findUsers(query);
   }
 
   async blockUser(userId: string, blockedUserId: string) {
@@ -780,7 +784,7 @@ export class UserService {
           purchased_at_ms: startDate.getTime(),
           will_renew: false,
           is_paid: false,
-        } as any);
+        } as any, true);
 
         if (currentUser.profileType === 'business') {
           await this.markAsVerifiedBusinessUser(userId);

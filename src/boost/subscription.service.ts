@@ -81,7 +81,7 @@ export class SubscriptionService {
     }
   }
 
-  async handleInitialPurchase(event: RevenueCatWebhookEvent) {
+  async handleInitialPurchase(event: RevenueCatWebhookEvent, skipTransactionCreation = false) {
     const { subscriptionType, subscriptionPeriod } = this.parseProductId(
       event.product_id,
     );
@@ -102,17 +102,19 @@ export class SubscriptionService {
       willRenew: event.will_renew === false ? false : true,
     });
 
-    await this.transactionModel.create({
-      revenueCatId: event.id,
-      user: event.app_user_id,
-      amount: event.price,
-      type: TransactionType.SUBSCRIPTION,
-      subscriptionType: subscriptionType,
-      date: new Date(event.purchased_at_ms),
-      store: event.store,
-      currency: event.currency,
-      currencyAmount: event.price_in_purchased_currency,
-    });
+    if (!skipTransactionCreation) {
+      await this.transactionModel.create({
+        revenueCatId: event.id,
+        user: event.app_user_id,
+        amount: event.price,
+        type: TransactionType.SUBSCRIPTION,
+        subscriptionType: subscriptionType,
+        date: new Date(event.purchased_at_ms),
+        store: event.store,
+        currency: event.currency,
+        currencyAmount: event.price_in_purchased_currency,
+      });
+    }
 
     // Update user tier
     const tier =

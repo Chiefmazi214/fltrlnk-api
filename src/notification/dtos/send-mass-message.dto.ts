@@ -1,32 +1,22 @@
 import { IsEnum, IsOptional, IsString, IsObject } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { BroadcastTarget, BroadcastType } from '../notification.enum';
 
-export enum MessageType {
-    IN_APP = 'in-app',
-    EMAIL = 'email',
-}
+export class SendBroadcastDto {
+  @ApiProperty({ enum: BroadcastType })
+  @IsEnum(BroadcastType)
+  type: BroadcastType;
 
-export class SendMassMessageDto {
-    @ApiProperty({ enum: MessageType })
-    @IsEnum(MessageType)
-    type: MessageType;
+  @ApiProperty()
+  @IsString()
+  content: string;
 
-    @ApiProperty()
-    @IsString()
-    message: string;
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  title: string;
 
-    @ApiProperty({ required: false })
-    @IsString()
-    @IsOptional()
-    title?: string;
-
-    @ApiProperty({ required: false })
-    @IsObject()
-    @IsOptional()
-    filters?: {
-        state?: string;
-        category?: string;
-        tier?: string;
-        status?: string;
-    };
+  @ApiProperty({ enum: BroadcastTarget })
+  @IsEnum(BroadcastTarget)
+  target: BroadcastTarget;
 }

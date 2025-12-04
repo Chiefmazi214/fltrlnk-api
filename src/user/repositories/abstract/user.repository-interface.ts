@@ -1,3 +1,4 @@
+import { FilterQuery } from 'mongoose';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import {
   BaseRepository,
@@ -23,4 +24,5 @@ export interface UserRepositoryInterface extends BaseRepository<UserDocument> {
   findByUsername(username: string, populate?: PopulationOptions[]): Promise<UserDocument | null>;
   findByIdWithSelect(id: string, select?: string, populate?: PopulationOptions[]): Promise<UserDocument | null>;
   updateByIds(userIds: string[], user: Partial<UserDocument>): Promise<number>;
+  findUsers(query: FilterQuery<UserDocument>, populate?: PopulationOptions[]): Promise<UserDocument[]>;
 }

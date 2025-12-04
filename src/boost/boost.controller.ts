@@ -16,7 +16,10 @@ import { UpdateRevenueCatInput } from './dto/revenuecat.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { RoleEnum } from 'src/user/models/role.model';
-import { CreateActiveBoostDto, RevenueCatWebhookPayload } from './dto/webhook.dto';
+import {
+  CreateActiveBoostDto,
+  RevenueCatWebhookPayload,
+} from './dto/webhook.dto';
 import { Request } from 'express';
 import { SubscriptionService } from './subscription.service';
 import { TransactionService } from './transaction.service';
@@ -32,52 +35,7 @@ export class BoostController {
     private readonly boostService: BoostService,
     private readonly subscriptionService: SubscriptionService,
     private readonly transactionService: TransactionService,
-  ) {
-
-    this.handleRevenueCatWebhook({
-      "api_version": "1.0",
-      "event": {
-        "aliases": [
-          "$RCAnonymousID:a31ddc92bfdf4acdac70554eabd73d2d",
-          "69264ee730be31f77ed1537a"
-        ],
-        "app_id": "appb4baf25504",
-        "app_user_id": "69264ee730be31f77ed1537a",
-        "commission_percentage": 0.3,
-        "country_code": "PK",
-        "currency": "PKR",
-        "entitlement_id": null,
-        "entitlement_ids": [
-          "fltrlite_basic"
-        ],
-        "environment": "SANDBOX" as any,
-        "event_timestamp_ms": 1764622362151,
-        "expiration_at_ms": 1764708669000,
-        "id": "2CF43FD4-1913-43A7-8ACC-70AE738976DA",
-        "is_family_share": false,
-        "offer_code": null,
-        "original_app_user_id": "69264ee730be31f77ed1537a",
-        "original_transaction_id": "2000001066214288",
-        "period_type": "NORMAL",
-        "presented_offering_id": "fltrlite_basic",
-        "price": 10.303,
-        "price_in_purchased_currency": 2900,
-        "product_id": "fltrlite_basic",
-        "purchased_at_ms": 1764622269000,
-        "store": "APP_STORE",
-        "subscriber_attributes": {
-          "$attConsentStatus": {
-            "updated_at_ms": 1764118422849,
-            "value": "denied"
-          }
-        },
-        "takehome_percentage": 0.7,
-        "tax_percentage": 0,
-        "transaction_id": "2000001070106966",
-        "type": "RENEWAL"
-      }
-    })
-   }
+  ) {}
 
   @Put(':revenuecatId')
   @UseGuards(AuthGuard)
@@ -119,8 +77,6 @@ export class BoostController {
     return this.boostService.getRevenueCatById(revenuecatId);
   }
 
-  
-
   // RevenueCat Webhook endpoint (no auth required for webhooks)
   @Post('webhook')
   @ApiOperation({ summary: 'RevenueCat webhook handler' })
@@ -138,7 +94,7 @@ export class BoostController {
       'EXPIRATION',
       'UNCANCELLATION',
       'SUBSCRIPTION_PAUSED',
-    ]; 
+    ];
 
     if (subscriptionEvents.includes(event.type)) {
       return this.subscriptionService.handleSubscriptionWebhook(event);
@@ -149,8 +105,14 @@ export class BoostController {
 
   @Post('active')
   @UseGuards(AuthGuard)
-  async createActiveBoost(@Body() createActiveBoostDto: CreateActiveBoostDto, @Req() req: Request) {
-    await this.boostService.createActiveBoost(req.user?._id, createActiveBoostDto);
+  async createActiveBoost(
+    @Body() createActiveBoostDto: CreateActiveBoostDto,
+    @Req() req: Request,
+  ) {
+    await this.boostService.createActiveBoost(
+      req.user?._id,
+      createActiveBoostDto,
+    );
     return {
       message: 'Active boost created successfully',
     };
@@ -172,14 +134,10 @@ export class BoostController {
     return this.subscriptionService.getActiveSubscription(req.user?._id);
   }
 
-  
   @Post('give/:id')
   @UseGuards(AuthGuard)
   @Roles(RoleEnum.ADMIN)
-  async giveBoosts(
-    @Param() params: CommonParams,
-    @Body() body: GiveBoostsDto,
-  ) {
+  async giveBoosts(@Param() params: CommonParams, @Body() body: GiveBoostsDto) {
     return this.boostService.giveBoosts(params.id, body);
   }
 

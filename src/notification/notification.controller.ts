@@ -14,10 +14,10 @@ import { NotificationType } from './models/notification.model';
 import { CreateNotificationDto } from './dtos/create-notification.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Request } from 'express';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { RoleEnum } from 'src/user/models/role.model';
-import { SendMassMessageDto } from './dtos/send-mass-message.dto';
+import { SendBroadcastDto } from './dtos/send-mass-message.dto';
 
 @Controller('notification')
 export class NotificationController {
@@ -52,30 +52,15 @@ export class NotificationController {
     });
   }
 
-  @Post('email')
+  @Post('broadcast')
   @UseGuards(AuthGuard)
   @Roles(RoleEnum.ADMIN)
   @ApiBearerAuth()
-  async createEmailNotification(
-    @Body() createNotificationDto: CreateNotificationDto,
+  async createBroadcast(
+    @Body() input: SendBroadcastDto,
     @Req() req: Request,
   ) {
-    return this.notificationService.createNotification({
-      ...createNotificationDto,
-      actorId: req.user._id,
-      type: NotificationType.EMAIL,
-    });
-  }
-
-  @Post('mass')
-  @UseGuards(AuthGuard)
-  @Roles(RoleEnum.ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Send mass message to users' })
-  async sendMassMessage(
-    @Body() sendMassMessageDto: SendMassMessageDto,
-    @Req() req: Request,
-  ) {
-    return this.notificationService.sendMassMessage(sendMassMessageDto, req.user._id);
+    const count = await this.notificationService.sendBroadcast(input, req.user?._id);
+    return { message: 'Broadcast sent successfully', count };
   }
 }

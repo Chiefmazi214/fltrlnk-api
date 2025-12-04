@@ -1,11 +1,17 @@
 import { NotificationRepositoryInterface } from './repositories/abstract/notification.repository-interface';
-import { Inject, Injectable } from '@nestjs/common';
-import { Types } from 'mongoose';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Model, Types } from 'mongoose';
 import { NotificationType } from './models/notification.model';
 import { CreateNotificationDto } from './dtos/create-notification.dto';
 import { Expo } from 'expo-server-sdk';
 import { UserService } from 'src/user/user.service';
 import { MailService } from './mail.service';
+import { SendBroadcastDto } from './dtos/send-mass-message.dto';
+import { BroadcastTarget, BroadcastType } from './notification.enum';
+import { ProfileType, UserTier } from 'src/user/user.enum';
+import { UserDocument } from 'src/user/models/user.model';
+import { InjectModel } from '@nestjs/mongoose';
+import { Broadcast, BroadcastDocument } from './models/broadcast.model';
 
 @Injectable()
 export class NotificationService {
@@ -13,6 +19,8 @@ export class NotificationService {
 
   constructor(
     private readonly userService: UserService,
+    @InjectModel(Broadcast.name)
+    private readonly broadcastModel: Model<BroadcastDocument>,
     @Inject(NotificationRepositoryInterface)
     private readonly notificationRepository: NotificationRepositoryInterface,
     private readonly mailService: MailService,
@@ -44,6 +52,29 @@ export class NotificationService {
     }
   }
 
+  private async sendExpoPushNotificationToUsers(
+    expoPushTokens: string[],
+    title: string,
+    message: string,
+  ) {
+    const validExpoPushTokens = expoPushTokens.filter((token) =>
+      Expo.isExpoPushToken(token),
+    );
+
+    try {
+      await this.expo.sendPushNotificationsAsync([
+        {
+          to: validExpoPushTokens,
+          sound: 'default',
+          title,
+          body: message,
+        },
+      ]);
+    } catch (error) {
+      console.error('Error sending push notification:', error);
+    }
+  }
+
   async createNotification(input: CreateNotificationDto) {
     const toObjectId = (id?: string) =>
       id ? new Types.ObjectId(id) : undefined;
@@ -61,7 +92,11 @@ export class NotificationService {
     if (input.recipientId) {
       const user = await this.userService.getUserById(input.recipientId);
       if (input.type === NotificationType.EMAIL) {
-        this.mailService.sendNotification([user?.email], input.title, input.message);
+        this.mailService.sendNotification(
+          [user?.email],
+          input.title,
+          input.message,
+        );
       } else if (user?.expoPushToken) {
         await this.sendExpoPushNotification(
           user.expoPushToken,
@@ -203,64 +238,66 @@ export class NotificationService {
     return this.notificationRepository.getSentConnectionRequests(userId);
   }
 
-  async sendMassMessage(input: any, adminId: string) {
-    // Construct query based on filters
-    const query: any = {};
-    if (input.filters) {
-      if (input.filters.state) {
-        query.businessState = { $regex: input.filters.state, $options: 'i' };
-      }
-      if (input.filters.category) {
-        query.businessCategory = { $regex: input.filters.category, $options: 'i' };
-      }
-      // Tier filter requires joining with subscriptions, which is complex.
-      // For now, we might skip tier filter or implement it if critical.
-      // Assuming basic user properties for now.
+  async sendBroadcast(input: SendBroadcastDto, senderId: string) {
+    let targetUser: UserDocument[] = [];
+    if (input.target === BroadcastTarget.INDIVIDUAL_USERS) {
+      targetUser = await this.userService.getUsers({
+        profileType: ProfileType.INDIVIDUAL,
+      });
+    }
+    if (input.target === BroadcastTarget.BUSINESS_USERS) {
+      targetUser = await this.userService.getUsers({
+        profileType: ProfileType.BUSINESS,
+      });
+    }
+    if (input.target === BroadcastTarget.FREE_BUSINESS) {
+      targetUser = await this.userService.getUsers({
+        profileType: ProfileType.BUSINESS,
+        tier: UserTier.FREE,
+      });
+    }
+    if (input.target === BroadcastTarget.FLTRLITE_BASIC) {
+      targetUser = await this.userService.getUsers({
+        profileType: ProfileType.BUSINESS,
+        tier: UserTier.BASIC,
+      });
+    }
+    if (input.target === BroadcastTarget.FLTRLITE_PRO) {
+      targetUser = await this.userService.getUsers({
+        profileType: ProfileType.BUSINESS,
+        tier: UserTier.PRO,
+      });
     }
 
-    // Fetch users (this might be heavy, consider batching)
-    const users = await this.userService.getAllUsers(); // Should use find with query
-    // But getAllUsers in UserService calls findAll without args.
-    // I should use countUsers logic or add findUsers(query) to UserService.
-    // For now, let's fetch all and filter in memory if query is complex, or better, add findUsers to UserService.
-
-    // Actually, let's use getUsersWithPagination logic but without pagination limits if possible,
-    // or just iterate.
-    // Let's assume we fetch all for now as MVP.
-
-    let targetUsers = users;
-
-    // Apply filters in memory if needed (e.g. tier)
-    if (input.filters?.tier) {
-      // We need to check subscription for each user.
-      // This is very slow.
-      // Ideally we should filter at DB level.
+    if (targetUser.length === 0) {
+      throw new BadRequestException('No users found');
     }
 
-    let count = 0;
-    for (const user of targetUsers) {
-      // Apply simple filters if not applied in DB
-      if (input.filters?.state && user.businessState !== input.filters.state) continue;
-
-      try {
-        if (input.type === 'email') {
-          await this.mailService.sendNotification([user.email], input.title || 'New Message', input.message);
-        } else {
-          // In-app
-          await this.createNotification({
-            recipientId: user._id.toString(),
-            actorId: adminId,
-            title: input.title,
-            message: input.message,
-            type: NotificationType.SYSTEM,
-          } as any);
-        }
-        count++;
-      } catch (e) {
-        console.error(`Failed to send message to user ${user._id}`, e);
-      }
+    if (input.type === BroadcastType.EMAIL) {
+      const emails = targetUser.map((user) => user.email);
+      await this.mailService.sendNotification(
+        emails,
+        input.title,
+        input.content,
+      );
+    } else if (input.type === BroadcastType.PUSH) {
+      const expoPushTokens = targetUser.map((user) => user.expoPushToken);
+      await this.sendExpoPushNotificationToUsers(
+        expoPushTokens,
+        input.title,
+        input.content,
+      );
     }
 
-    return { sent: count };
+    await this.broadcastModel.create({
+      type: input.type,
+      target: input.target,
+      title: input.title,
+      content: input.content,
+      sender: senderId,
+      sentCount: targetUser.length,
+    });
+
+    return  targetUser.length
   }
 }
