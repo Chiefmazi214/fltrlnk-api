@@ -13,7 +13,7 @@ export class ChangeFollowStatusDto {
 
 export class GetFollowersQueryDto extends PaginationDto {
   @ApiPropertyOptional({ description: 'The status of the followers' })
-  @IsEnum(FollowStatus)
+  @IsEnum(['all', ...Object.values(FollowStatus)])
   @IsOptional()
-  status?: FollowStatus = FollowStatus.ACCEPTED;
+  status?: 'all' | FollowStatus = 'all';
 }

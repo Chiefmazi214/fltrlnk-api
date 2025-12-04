@@ -143,12 +143,12 @@ export class FollowService {
     userId: string,
     input: GetFollowersQueryDto,
   ): Promise<PaginatedResultDto<FollowDocument>> {
-    const { page = 1, limit = 10, status = FollowStatus.ACCEPTED } = input;
+    const { page = 1, limit = 10, status = 'all' } = input;
     const skip = (page - 1) * limit;
 
     const [following, total] = await Promise.all([
       this.followRepository.findAll(
-        { follower: userId, ...(status ? { status } : {}) },
+        { follower: userId, ...(status !== 'all' ? { status } : {}) },
         [
           { path: 'follower', select: 'username email profileImage' },
           { path: 'following', select: 'username email profileImage' },
