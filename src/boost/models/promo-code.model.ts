@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { PromoCodeStatus } from '../boost.enum';
 import { HydratedDocument } from 'mongoose';
 
-@Schema({ collection: 'promo-codes', timestamps: true })
+@Schema({ collection: 'promo_codes', timestamps: true })
 export class PromoCode {
   @Prop({ required: true })
   code: string;
