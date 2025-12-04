@@ -412,6 +412,7 @@ export class SubscriptionService {
       willRenew: false,
     });
 
+    await this.userService.markAsVerifiedBusinessUser(userId);
     await this.userService.updateUser(userId, {
       tier: UserTier.PRO,
     });
