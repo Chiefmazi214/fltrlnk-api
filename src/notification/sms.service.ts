@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ISendSms } from './notification.types';
+import { ISendSms } from './notification.enum';
 import { TwilioService } from 'nestjs-twilio';
 
 @Injectable()

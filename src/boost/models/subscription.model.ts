@@ -1,23 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-
-export enum SubscriptionType {
-  BASIC = 'basic',
-  PRO = 'pro',
-}
-
-export enum SubscriptionStatus {
-  ACTIVE = 'active',
-  CANCELLED = 'cancelled',
-  EXPIRED = 'expired',
-  PAUSED = 'paused',
-}
-
-export enum SubscriptionPeriod {
-  MONTHLY = 'monthly',
-  SIX_MONTHS = '6_months',
-  ANNUAL = 'annual',
-}
+import { SubscriptionType, SubscriptionPeriod, SubscriptionStatus } from '../boost.enum';
 
 @Schema({ collection: 'subscriptions', timestamps: true })
 export class Subscription {

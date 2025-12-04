@@ -15,7 +15,7 @@ import {
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
-import { ProfileType, UserStatus } from '../user.enum';
+import { ProfileType, UserStatus, UserTier } from '../user.enum';
 
 export class UpdateUserLocationDto {
   @IsString()
@@ -190,16 +190,33 @@ export class GetUsersWithPaginationQueryInput extends PaginationDto {
   //tier (boost planType)
   @ApiPropertyOptional({
     description: 'The boost tier',
-    example: 'premium',
-    enum: ['pro', 'premium', 'enterprise']
+    example: UserTier.BASIC,
+    enum: UserTier
   })
-  @IsString()
+  @IsEnum(UserTier)
   @IsOptional()
-  tier?: string;
+  tier?: UserTier;
 }
 
 export class ChangeUserStatusInput {
   @ApiProperty({ description: 'The new status', example: UserStatus.ACTIVE })
   @IsEnum(UserStatus)
   status: UserStatus;
+}
+
+export class AdminUpdateUserDto {
+  @ApiPropertyOptional({ description: 'User status', example: UserStatus.ACTIVE })
+  @IsEnum(UserStatus)
+  @IsOptional()
+  status?: UserStatus;
+
+  @ApiPropertyOptional({ description: 'User tier', example: UserTier.BASIC, enum: UserTier })
+  @IsEnum(UserTier)
+  @IsOptional()
+  tier?: UserTier;
+
+  @ApiPropertyOptional({ description: 'User boosts object' })
+  @IsObject()
+  @IsOptional()
+  boosts?: Record<string, number>;
 }

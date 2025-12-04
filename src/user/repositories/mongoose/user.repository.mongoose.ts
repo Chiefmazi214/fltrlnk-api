@@ -1,7 +1,7 @@
 import { MongooseRepositoryBase } from 'src/common/repository/mongoose/mongoose.repository';
 import { User, UserDocument } from '../../models/user.model';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { FilterQuery, Model } from 'mongoose';
 import { UserRepositoryInterface } from '../abstract/user.repository-interface';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { PopulationOptions } from 'src/common/repository/abstract/base.repository';
@@ -85,5 +85,19 @@ export class UserRepository
     }
 
     return query.exec();
+  }
+
+  async updateByIds(userIds: string[], user: Partial<UserDocument>) {
+    const result = await this.userModel.updateMany({ _id: { $in: userIds } }, { $set: user }).exec();
+    return result.modifiedCount || 0;
+  }
+
+  async findUsers(query: FilterQuery<UserDocument>, populate?: PopulationOptions[]): Promise<UserDocument[]> {
+    let queryBuilder  = this.userModel.find(query)
+    if (populate) {
+      queryBuilder.populate(populate);
+    }
+
+    return queryBuilder.exec();
   }
 }

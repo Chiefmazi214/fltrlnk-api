@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as sgMail from '@sendgrid/mail';
 import { sanitizeEmailForDevelopment } from 'src/common/utils/email';
 import { ConfigService } from '@nestjs/config';
-import { ISendMail } from './notification.types';
+import { ISendMail } from './notification.enum';
 
 @Injectable()
 export class MailService {

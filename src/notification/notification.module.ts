@@ -10,6 +10,7 @@ import { MailService } from './mail.service';
 import { TwilioModule } from 'nestjs-twilio';
 import { ConfigService } from '@nestjs/config';
 import { SmsService } from './sms.service';
+import { Broadcast, BroadcastSchema } from './models/broadcast.model';
 
 @Global()
 @Module({
@@ -33,6 +34,7 @@ import { SmsService } from './sms.service';
 
     MongooseModule.forFeature([
       { name: Notification.name, schema: NotificationSchema },
+      { name: Broadcast.name, schema: BroadcastSchema },
     ]),
     UserModule,
   ],

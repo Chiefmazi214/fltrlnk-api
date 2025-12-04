@@ -5,7 +5,7 @@ import {
   ConflictException,
   forwardRef,
 } from '@nestjs/common';
-import { Types } from 'mongoose';
+import { FilterQuery, Types } from 'mongoose';
 import { UserRepositoryInterface } from './repositories/abstract/user.repository-interface';
 import { User, UserDocument } from './models/user.model';
 import { RoleService } from './role.service';
@@ -26,9 +26,14 @@ import {
 } from './models/lifestyle-info.model';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { BusinessService } from 'src/business/business.service';
-import { ProfileType } from './user.enum';
+import { ProfileType, UserTier } from './user.enum';
 import { Business } from 'src/business/models/business.model';
 import { BoostService } from 'src/boost/boost.service';
+import { SubscriptionService } from 'src/boost/subscription.service';
+import { RevenueCatWebhookEvent } from 'src/boost/dto/webhook.dto';
+import { ConfigService } from '@nestjs/config';
+import { SubscriptionType } from 'src/boost/boost.enum';
+import { TransactionService } from 'src/boost/transaction.service';
 
 @Injectable()
 export class UserService {
@@ -40,8 +45,11 @@ export class UserService {
     private readonly attachmentService: AttachmentService,
     private readonly lifestyleInfoService: LifestyleInfoService,
     private readonly boostService: BoostService,
+    private readonly subscriptionService: SubscriptionService,
+    private readonly transactionService: TransactionService,
     @Inject(forwardRef(() => BusinessService))
     private readonly businessService: BusinessService,
+    private readonly configService: ConfigService,
   ) {}
 
   async getUserByEmail(email: string): Promise<UserDocument> {
@@ -114,6 +122,10 @@ export class UserService {
   ): Promise<UserDocument> {
     console.log('@updateUser..... ', JSON.stringify(user, undefined, 2));
     return this.userRepository.update(userId, { ...user });
+  }
+
+  async updateByIds(userIds: string[], user: Partial<UserDocument>) {
+    return this.userRepository.updateByIds(userIds, { ...user });
   }
 
   async validateEmailUniqueness(email: string, userId?: string) {
@@ -253,6 +265,10 @@ export class UserService {
     return this.userRepository.findAll();
   }
 
+  async getUsers(query: FilterQuery<UserDocument>): Promise<UserDocument[]> {
+    return this.userRepository.findUsers(query);
+  }
+
   async blockUser(userId: string, blockedUserId: string) {
     const user = await this.userRepository.findById(userId);
     if (!user) {
@@ -329,6 +345,14 @@ export class UserService {
       queryBuilder.businessCategory = { $regex: query.category, $options: 'i' };
     }
 
+    if (query.tier) {
+      if (query.tier.toLowerCase() === UserTier.FREE) {
+        queryBuilder.tier = { $in: [UserTier.FREE, null] };
+      } else {
+        queryBuilder.tier = query.tier;
+      }
+    }
+
     const result = await this.userRepository.findWithPagination(
       queryBuilder,
       undefined,
@@ -338,6 +362,7 @@ export class UserService {
       },
     );
 
+    // Tier is now stored directly in the user model, no need to look up subscriptions
     return {
       data: result.data,
       total: result.total,
@@ -357,22 +382,118 @@ export class UserService {
 
   async getUserById(id: string): Promise<UserDocument> {
     let user = await this.userRepository.findById(id);
-    if (user) {
-      try {
-        const business = await this.businessService.getBusiness(id);
-        if (business) {
-          // Convert to plain object and add businessId
-          let userObject = user.toObject();
-          (userObject as any).businessId = (business as any)._id.toString();
-
-          return this.mapBusiness(userObject, business) as any;
-        }
-      } catch (error) {
-        // Business not found for this user, which is fine
-        console.log(`No business found for user ${id}`);
-      }
+    if (!user) {
+      return null;
     }
-    return user;
+    let userObject = user.toObject();
+    try {
+      const boostsData = await this.boostService.getUserBoosts(
+        user._id.toString(),
+      );
+      const boosts: any = boostsData?.[0]?.boosts || {};
+
+      (userObject as any).boosts = {
+        fltr: boosts?.fltr || 0,
+        lnk: boosts?.lnk || 0,
+        match: boosts?.match || 0,
+        gps: boosts?.gps || 0,
+        loc: boosts?.loc || 0,
+        users: boosts?.users || 0,
+        search: boosts?.search || 0,
+      };
+    } catch (error) {
+      console.log(`No boosts found for user ${id}`);
+    }
+
+    try {
+      const business = await this.businessService.getBusiness(id);
+      if (business) {
+        // Add businessId
+        (userObject as any).businessId = (business as any)._id.toString();
+        return this.mapBusiness(userObject, business) as any;
+      }
+    } catch (error) {
+      // Business not found for this user, which is fine
+      console.log(`No business found for user ${id}`);
+    }
+
+    return userObject as any;
+  }
+
+  // invites
+  async getUserInvites(username: string) {
+    let users = await this.userRepository.findAll({
+      referralUsername: username,
+    });
+
+    return users;
+  }
+
+  // transactions
+  async getUserTransactions(userId: string): Promise<any> {
+    return this.transactionService.getUserTransactions(userId);
+  }
+
+  async getUserByIdForAdmin(id: string) {
+    let user = await this.userRepository.findById(id);
+    if (!user) {
+      return null;
+    }
+    let userObject = user.toObject();
+    try {
+      const boostsData = await this.boostService.getUserBoosts(
+        user._id.toString(),
+      );
+      const boosts: any = boostsData?.[0]?.boosts || {};
+
+      (userObject as any).boosts = {
+        fltr: boosts?.fltr || 0,
+        lnk: boosts?.lnk || 0,
+        match: boosts?.match || 0,
+        gps: boosts?.gps || 0,
+        loc: boosts?.loc || 0,
+        users: boosts?.users || 0,
+        search: boosts?.search || 0,
+      };
+    } catch (error) {
+      console.log(`No boosts found for user ${id}`);
+    }
+
+    try {
+      const business = await this.businessService.getBusiness(id);
+      if (business) {
+        (userObject as any).businessId = (business as any)._id.toString();
+        userObject = this.mapBusiness(userObject, business) as any;
+      }
+    } catch (error) {
+      // Business not found for this user, which is fine
+      console.log(`No business found for user ${id}`);
+    }
+
+    try {
+      let subscriptions = await this.subscriptionService.getUserSubscriptions(
+        user._id.toString(),
+      );
+      (userObject as any).subscriptions = subscriptions;
+    } catch (error) {
+      console.log(`No subscriptions found for user ${id}`);
+    }
+
+    try {
+      let invites = await this.getUserInvites(user.username);
+      (userObject as any).invites = invites;
+    } catch (error) {
+      console.log(`No invites found for user ${id}`);
+    }
+
+    try {
+      let transactions = await this.getUserTransactions(user._id.toString());
+      (userObject as any).transactions = transactions;
+    } catch (error) {
+      console.log(`No transactions found for user ${id}`);
+    }
+
+    return userObject as any;
   }
 
   async updateUserLifestyleInfo(
@@ -495,5 +616,197 @@ export class UserService {
 
   async updateUserStatusById(id: string, input: ChangeUserStatusInput) {
     return this.userRepository.update(id, { status: input.status });
+  }
+
+  async countUsers(query: any = {}): Promise<number> {
+    return this.userRepository.count(query);
+  }
+
+  async getTopInvites(limit: number = 20) {
+    return (this.userRepository as any).userModel.aggregate([
+      { $match: { referralUsername: { $exists: true, $ne: null } } },
+      {
+        $group: {
+          _id: '$referralUsername',
+          totalSignedUp: { $sum: 1 },
+          totalPurchased: {
+            $sum: {
+              $cond: {
+                if: {
+                  $or: [
+                    { $eq: ['$tier', UserTier.BASIC] },
+                    { $eq: ['$tier', UserTier.PRO] },
+                  ],
+                },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: 'username',
+          as: 'referrerUser',
+        },
+      },
+      {
+        $unwind: {
+          path: '$referrerUser',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          displayName: '$referrerUser.displayName',
+          email: '$referrerUser.email',
+          handle: '$referrerUser.handle',
+          state: '$referrerUser.state',
+          username: '$referrerUser.username',
+          conversionRate: {
+            $cond: {
+              if: { $gt: ['$totalSignedUp', 0] },
+              then: {
+                $multiply: [
+                  { $divide: ['$totalPurchased', '$totalSignedUp'] },
+                  100,
+                ],
+              },
+              else: 0,
+            },
+          },
+        },
+      },
+      { $sort: { totalPurchased: -1 } },
+      { $limit: limit },
+    ]);
+  }
+
+  async getAllInvites() {
+    return (this.userRepository as any).userModel.aggregate([
+      { $match: { referralUsername: { $exists: true, $ne: null } } },
+      {
+        $group: {
+          _id: '$referralUsername',
+          totalSignedUp: { $sum: 1 },
+          totalPurchased: {
+            $sum: {
+              $cond: {
+                if: {
+                  $or: [
+                    { $eq: ['$tier', UserTier.BASIC] },
+                    { $eq: ['$tier', UserTier.PRO] },
+                  ],
+                },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: 'username',
+          as: 'referrerUser',
+        },
+      },
+      {
+        $addFields: {
+          displayName: '$referrerUser.displayName',
+          email: '$referrerUser.email',
+          handle: '$referrerUser.handle',
+          state: '$referrerUser.state',
+          username: '$referrerUser.username',
+        },
+      },
+      {
+        $addFields: {
+          conversionRate: {
+            $cond: {
+              if: { $gt: ['$totalSignedUp', 0] },
+              then: {
+                $multiply: [
+                  { $divide: ['$totalPurchased', '$totalSignedUp'] },
+                  100,
+                ],
+              },
+              else: 0,
+            },
+          },
+        },
+      },
+      { $sort: { totalPurchased: -1 } },
+    ]);
+  }
+
+  async adminUpdateUser(userId: string, input: any): Promise<UserDocument> {
+    const updateData: any = {};
+    const currentUser = await this.userRepository.findById(userId);
+
+    if (input.status !== undefined) {
+      updateData.status = input.status;
+    }
+
+    if (input.tier !== undefined && input.tier !== currentUser.tier) {
+      updateData.tier = input.tier;
+
+      const productId =
+        input.tier === SubscriptionType.BASIC
+          ? this.configService.get('REVENUECAT_BASIC_PRODUCT_ID')
+          : this.configService.get('REVENUECAT_PRO_PRODUCT_ID');
+
+      if (input.tier === UserTier.BASIC || input.tier === UserTier.PRO) {
+        const existingSubscription =
+          await this.subscriptionService.getActiveSubscription(userId);
+        if (existingSubscription) {
+          await this.subscriptionService.handleExpiration({
+            app_user_id: userId,
+            expiration_at_ms: Date.now(),
+            event_timestamp_ms: Date.now(),
+          } as RevenueCatWebhookEvent);
+        }
+
+        const startDate = new Date();
+        const renewalDate = new Date();
+        renewalDate.setMonth(renewalDate.getMonth() + 1);
+
+        await this.subscriptionService.handleInitialPurchase({
+          product_id: productId,
+          expiration_at_ms: renewalDate.getTime(),
+          id: `admin_${userId}_${Date.now()}`,
+          app_user_id: userId,
+          purchased_at_ms: startDate.getTime(),
+          will_renew: false,
+          is_paid: false,
+        } as any, true);
+
+        if (currentUser.profileType === 'business') {
+          await this.markAsVerifiedBusinessUser(userId);
+        }
+      } else if (input.tier === UserTier.FREE) {
+        await this.subscriptionService.expireAllSubscriptions(userId);
+      }
+    }
+
+    if (input.boosts !== undefined) {
+      const boostUpdates = Object.entries(input.boosts).map(
+        ([type, count]) => ({
+          type,
+          count: Number(count),
+        }),
+      );
+
+      for (const { type, count } of boostUpdates) {
+        await this.boostService.grantBoosts(userId, type as any, count);
+      }
+    }
+
+    return this.userRepository.update(userId, updateData);
   }
 }

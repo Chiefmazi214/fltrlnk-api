@@ -15,12 +15,15 @@ import {
 } from './dto/webhook.dto';
 import { ActiveBoost, ActiveBoostDocument } from './models/active-boost.model';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { ActiveBoostStatus, BoostType } from './boost.enum';
+import { ActiveBoostStatus, BoostType, TransactionType } from './boost.enum';
 import {
   Subscription,
   SubscriptionDocument,
-  SubscriptionStatus,
 } from './models/subscription.model';
+import { SubscriptionStatus } from './boost.enum';
+import { GiveBoostsDto } from './dto/boosts.dto';
+import { GetAllSubscriptionsDto } from './dto/subscription.dto';
+import { Transaction, TransactionDocument } from './models/transactions.model';
 
 @Injectable()
 export class BoostService {
@@ -35,6 +38,8 @@ export class BoostService {
     private readonly activeBoostModel: Model<ActiveBoostDocument>,
     @InjectModel(Subscription.name)
     private readonly subscriptionModel: Model<SubscriptionDocument>,
+    @InjectModel(Transaction.name)
+    private readonly transactionModel: Model<TransactionDocument>,
   ) { }
 
   async deleteRevenueCat(revenuecatId: string) {
@@ -310,5 +315,139 @@ export class BoostService {
       boosts.boosts[type] += countNumber;
       await boosts.save();
     }
+
+    await this.transactionModel.create({
+      revenueCatId: event.id,
+      user: event.app_user_id,
+      amount: event.price,
+      type: TransactionType.BOOST,
+      date: new Date(event.purchased_at_ms),
+      store: event.store,
+      currency: event.currency,
+      currencyAmount: event.price_in_purchased_currency,
+    });
+  }
+
+  async countSubscriptions(query: any = {}): Promise<number> {
+    return this.subscriptionModel.countDocuments(query);
+  }
+
+  async getActiveSubscription(
+    userId: string,
+  ): Promise<SubscriptionDocument | null> {
+    return this.subscriptionModel
+      .findOne({
+        user: new Types.ObjectId(userId),
+        status: SubscriptionStatus.ACTIVE,
+      })
+      .sort({ createdAt: -1 });
+  }
+
+  async grantBoosts(userId: string, type: BoostType, count: number) {
+    const boosts = await this.boostModel.findOne({
+      user: new Types.ObjectId(userId),
+    });
+
+    if (!boosts) {
+      await this.boostModel.create({
+        user: new Types.ObjectId(userId),
+        boosts: { [type]: count },
+      });
+    } else {
+      if (!boosts.boosts) {
+        boosts.boosts = {} as any;
+      }
+      if (!boosts.boosts[type]) {
+        boosts.boosts[type] = 0;
+      }
+      boosts.boosts[type] += count;
+      await boosts.save();
+    }
+
+    return { message: 'Boosts granted successfully' };
+  }
+
+  async giveBoosts(userId: string, body: GiveBoostsDto) {
+    const count = body.amount;
+
+    const boosts = await this.boostModel.findOne({
+      user: new Types.ObjectId(userId),
+    });
+    if (!boosts) {
+      const boosts = {
+        fltr: body.type
+          ? body.type === BoostType.FLTR
+            ? count
+            : 0
+          : count / 7,
+        lnk: body.type ? (body.type === BoostType.LNK ? count : 0) : count / 7,
+        match: body.type
+          ? body.type === BoostType.MATCH
+            ? count
+            : 0
+          : count / 7,
+        gps: body.type ? (body.type === BoostType.GPS ? count : 0) : count / 7,
+        users: body.type
+          ? body.type === BoostType.USERS
+            ? count
+            : 0
+          : count / 7,
+        search: body.type
+          ? body.type === BoostType.SEARCH
+            ? count
+            : 0
+          : count / 7,
+        loc: body.type ? (body.type === BoostType.LOC ? count : 0) : count / 7,
+      };
+      await this.boostModel.create({
+        user: new Types.ObjectId(userId),
+        boosts: boosts,
+      });
+      return;
+    }
+
+    if (!body.type) {
+      boosts.boosts.fltr += count / 7;
+      boosts.boosts.lnk += count / 7;
+      boosts.boosts.match += count / 7;
+      boosts.boosts.gps += count / 7;
+      boosts.boosts.users += count / 7;
+      boosts.boosts.search += count / 7;
+      boosts.boosts.loc += count / 7;
+    } else {
+      boosts.boosts[body.type] += count;
+    }
+
+    await boosts.save();
+    return { message: 'Boosts given successfully' };
+  }
+
+  async getAllSubscriptions(
+    query: GetAllSubscriptionsDto,
+  ): Promise<any> {
+    const skip = (query.page - 1) * query.limit;
+    const [data, total] = await Promise.all([
+      this.subscriptionModel
+        .find({
+          ...(query.status && { status: query.status }),
+          ...(query.type && { subscriptionType: query.type }),
+        })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(query.limit)
+        .populate('user', 'username email profileImage')
+        .exec(),
+      this.subscriptionModel.countDocuments({
+        ...(query.status && { status: query.status }),
+        ...(query.type && { subscriptionType: query.type }),
+      }),
+    ]);
+
+    return {
+      data,
+      total,
+      page: query.page,
+      limit: query.limit,
+    };
   }
 }

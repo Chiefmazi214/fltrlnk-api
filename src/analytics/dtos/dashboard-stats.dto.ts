@@ -38,13 +38,13 @@ export class RevenueDto {
   total: number;
 
   @ApiProperty({ example: 0.0 })
-  premium: number;
-
-  @ApiProperty({ example: 0.0 })
   basic: number;
 
   @ApiProperty({ example: 0.0 })
   pro: number;
+
+  @ApiProperty({ example: 0.0 })
+  boost: number;
 }
 
 export class SweepstakesProgressDto {
@@ -109,4 +109,26 @@ export class DashboardStatsDto {
 
   @ApiProperty({ type: [StateEntryDto] })
   topStatesBySweepstakes: StateEntryDto[];
+}
+
+export class UserMatrixDto {
+  @ApiProperty({ example: 0 })
+  totalUsers: number;
+
+  @ApiProperty({ example: 0 })
+  paidUsers: number;
+
+  @ApiProperty({ example: 0 })
+  totalBusinesses: number;
+}
+
+export class RevenueMatrixDto {
+  @ApiProperty({ example: 0.0 })
+  totalRevenue: number;
+
+  @ApiProperty({ example: 0.0 })
+  averageOrderValue: number;
+
+  @ApiProperty({ example: 0 })
+  totalTransactions: number;
 }

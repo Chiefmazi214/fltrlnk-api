@@ -1,4 +1,9 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { BusinessRepositoryInterface } from './repositories/abstract/business.repository-interface';
 import { CreateBusinessDto } from './dtos/create-business.dto';
 import { Business, BusinessDocument } from './models/business.model';
@@ -9,6 +14,7 @@ import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { AttachmentService } from 'src/attachment/attachment.service';
 import { GetBusinessesWithPaginationQueryInput } from './dtos/business.dto';
 import { UserService } from 'src/user/user.service';
+import { BoostService } from 'src/boost/boost.service';
 
 @Injectable()
 export class BusinessService {
@@ -16,8 +22,10 @@ export class BusinessService {
     @Inject(BusinessRepositoryInterface)
     private businessRepository: BusinessRepositoryInterface,
     private attachmentService: AttachmentService,
-    @Inject(forwardRef(() => UserService)) private readonly userService: UserService
-  ) { }
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
+    private readonly boostService: BoostService,
+  ) {}
 
   private convertWorkingHoursToMap(workingHours: any): Map<string, any> {
     if (!workingHours) return new Map();
@@ -84,7 +92,7 @@ export class BusinessService {
       businessType: updatedBusiness?.businessType,
       businessNiche: updatedBusiness?.niche,
       businessState: updatedBusiness?.state,
-      businessCategory: updatedBusiness?.category
+      businessCategory: updatedBusiness?.category,
     });
 
     return updatedBusiness.populate(
@@ -123,13 +131,28 @@ export class BusinessService {
       throw new NotFoundException('Business not found');
     }
 
-    // Fetch attachments for the business user
     const attachments = await this.attachmentService.getAttachmentsByUser(
       business.user._id.toString(),
     );
 
+    const boostsData = await this.boostService.getUserBoosts(
+      business.user?.['_id']?.toString(),
+    );
+    const boosts: any = boostsData?.[0]?.boosts || {};
+
+    business['_doc'].boosts = {
+      fltr: boosts?.fltr || 0,
+      lnk: boosts?.lnk || 0,
+      match: boosts?.match || 0,
+      gps: boosts?.gps || 0,
+      loc: boosts?.loc || 0,
+      users: boosts?.users || 0,
+      search: boosts?.search || 0,
+    };
+    business['_doc'].userId = business.user?._id.toString();
     business['_doc'].attachments = attachments;
-    return business
+
+    return business;
   }
 
   async getBusinesses(
@@ -138,17 +161,19 @@ export class BusinessService {
   ): Promise<PaginatedResultDto<Business>> {
     const { page = 1, limit = 10 } = paginationDto;
 
-    // Use the new getAll method if searchQuery is provided
     if (searchQuery) {
-      const { data, total } = await this.businessRepository.getAll(page, limit, searchQuery);
-
-      // Fetch attachments for each business
+      const { data, total } = await this.businessRepository.getAll(
+        page,
+        limit,
+        searchQuery,
+      );
       const businessesWithAttachments = await Promise.all(
         data.map(async (business: any) => {
           if (business.user && business.user._id) {
-            const attachments = await this.attachmentService.getAttachmentsByUser(
-              business.user._id.toString(),
-            );
+            const attachments =
+              await this.attachmentService.getAttachmentsByUser(
+                business.user._id.toString(),
+              );
             return {
               ...business,
               attachments,
@@ -182,7 +207,6 @@ export class BusinessService {
       this.businessRepository.count(),
     ]);
 
-    // Fetch attachments for each business
     const businessesWithAttachments = await Promise.all(
       businesses.map(async (business) => {
         if (business.user && business.user._id) {
@@ -315,7 +339,7 @@ export class BusinessService {
           {
             path: 'user',
             select:
-              'username email profileImage attributes displayName location lifestyleInfo isOnline profileType businessType status',
+              'username email profileImage attributes displayName location lifestyleInfo isOnline profileType businessType status tier',
           },
         ],
         { skip, limit: query.limit },
@@ -323,11 +347,27 @@ export class BusinessService {
       this.businessRepository.count(queryBuilder),
     ]);
 
+    const mappedBusinesses = await Promise.all(
+      businesses.map(async (business) => {
+        const businessObj = business.toObject();
+        return {
+          ...businessObj,
+          status: business.user?.['status'] || 'active',
+          tier: business.user?.['tier'] || 'free',
+          userId: business.user?._id.toString(),
+        };
+      }),
+    );
+
     return {
-      data: businesses,
+      data: mappedBusinesses as any,
       total,
       page: query.page,
       limit: query.limit,
     };
+  }
+
+  async countBusinesses(query: any = {}): Promise<number> {
+    return this.businessRepository.count(query);
   }
 }

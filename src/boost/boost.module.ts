@@ -8,7 +8,9 @@ import { ActiveBoost, ActiveBoostSchema } from './models/active-boost.model';
 import { Subscription, SubscriptionSchema } from './models/subscription.model';
 import { UserModule } from 'src/user/user.module';
 import { SubscriptionRepository } from './repositories/subscription.repository';
-import { SubscriptionService } from './services/subscription.service';
+import { SubscriptionService } from './subscription.service';
+import { TransactionService } from './transaction.service';
+import { Transaction, TransactionSchema } from './models/transactions.model';
 
 @Global()
 @Module({
@@ -19,10 +21,11 @@ import { SubscriptionService } from './services/subscription.service';
       { name: Boost.name, schema: BoostSchema },
       { name: ActiveBoost.name, schema: ActiveBoostSchema },
       { name: Subscription.name, schema: SubscriptionSchema },
+      { name: Transaction.name, schema: TransactionSchema },
     ]),
   ],
   controllers: [BoostController],
-  providers: [BoostService, SubscriptionRepository, SubscriptionService],
-  exports: [BoostService, SubscriptionService],
+  providers: [BoostService, SubscriptionRepository, SubscriptionService, TransactionService],
+  exports: [BoostService, SubscriptionService, TransactionService],
 })
 export class BoostModule { }
