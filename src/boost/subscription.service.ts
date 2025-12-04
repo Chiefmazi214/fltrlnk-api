@@ -87,7 +87,10 @@ export class SubscriptionService {
     }
   }
 
-  async handleInitialPurchase(event: RevenueCatWebhookEvent, skipTransactionCreation = false) {
+  async handleInitialPurchase(
+    event: RevenueCatWebhookEvent,
+    skipTransactionCreation = false,
+  ) {
     const { subscriptionType, subscriptionPeriod } = this.parseProductId(
       event.product_id,
     );
@@ -409,10 +412,13 @@ export class SubscriptionService {
       willRenew: false,
     });
 
+    await this.userService.updateUser(userId, {
+      tier: UserTier.PRO,
+    });
+
     promoCode.status = PromoCodeStatus.USED;
     await promoCode.save();
   }
-
 
   // run cron job every day and check if endDate is in the past and status is active and update the status to expired and update the user tier to free
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
