@@ -48,6 +48,15 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
+  @Post('login/admin')
+  @ApiOperation({ summary: 'Login admin' })
+  @ApiResponse({ status: 200, description: 'Admin successfully logged in' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @HttpCode(HttpStatus.OK)
+  loginAdmin(@Body() loginDto: LoginDto) {
+    return this.authService.loginAdmin(loginDto);
+  }
+
   @Post('send/email/verification')
   @ApiOperation({ summary: 'Send email verification code' })
   @ApiResponse({

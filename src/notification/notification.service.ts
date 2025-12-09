@@ -1,5 +1,5 @@
 import { NotificationRepositoryInterface } from './repositories/abstract/notification.repository-interface';
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Model, Types } from 'mongoose';
 import { NotificationType } from './models/notification.model';
 import { CreateNotificationDto } from './dtos/create-notification.dto';
@@ -9,9 +9,9 @@ import { MailService } from './mail.service';
 import { SendBroadcastDto } from './dtos/send-mass-message.dto';
 import { BroadcastTarget, BroadcastType } from './notification.enum';
 import { ProfileType, UserTier } from 'src/user/user.enum';
-import { UserDocument } from 'src/user/models/user.model';
 import { InjectModel } from '@nestjs/mongoose';
 import { Broadcast, BroadcastDocument } from './models/broadcast.model';
+import { ChatService } from 'src/chat/chat.service';
 
 @Injectable()
 export class NotificationService {
@@ -24,6 +24,8 @@ export class NotificationService {
     @Inject(NotificationRepositoryInterface)
     private readonly notificationRepository: NotificationRepositoryInterface,
     private readonly mailService: MailService,
+    @Inject(forwardRef(() => ChatService))
+    private readonly chatService: ChatService,
   ) {
     this.expo = new Expo();
   }
@@ -239,49 +241,51 @@ export class NotificationService {
   }
 
   async sendBroadcast(input: SendBroadcastDto, senderId: string) {
-    let targetUser: UserDocument[] = [];
-    if (input.target === BroadcastTarget.INDIVIDUAL_USERS) {
-      targetUser = await this.userService.getUsers({
-        profileType: ProfileType.INDIVIDUAL,
-      });
-    }
-    if (input.target === BroadcastTarget.BUSINESS_USERS) {
-      targetUser = await this.userService.getUsers({
-        profileType: ProfileType.BUSINESS,
-      });
-    }
-    if (input.target === BroadcastTarget.FREE_BUSINESS) {
-      targetUser = await this.userService.getUsers({
-        profileType: ProfileType.BUSINESS,
-        tier: UserTier.FREE,
-      });
-    }
-    if (input.target === BroadcastTarget.FLTRLITE_BASIC) {
-      targetUser = await this.userService.getUsers({
-        profileType: ProfileType.BUSINESS,
-        tier: UserTier.BASIC,
-      });
-    }
-    if (input.target === BroadcastTarget.FLTRLITE_PRO) {
-      targetUser = await this.userService.getUsers({
-        profileType: ProfileType.BUSINESS,
-        tier: UserTier.PRO,
-      });
+    // Build query based on target - single query construction
+    let query: any = {};
+    switch (input.target) {
+      case BroadcastTarget.INDIVIDUAL_USERS:
+        query.profileType = ProfileType.INDIVIDUAL;
+        break;
+      case BroadcastTarget.BUSINESS_USERS:
+        query.profileType = ProfileType.BUSINESS;
+        break;
+      case BroadcastTarget.FREE_BUSINESS:
+        query = { profileType: ProfileType.BUSINESS, tier: UserTier.FREE };
+        break;
+      case BroadcastTarget.FLTRLITE_BASIC:
+        query = { profileType: ProfileType.BUSINESS, tier: UserTier.BASIC };
+        break;
+      case BroadcastTarget.FLTRLITE_PRO:
+        query = { profileType: ProfileType.BUSINESS, tier: UserTier.PRO };
+        break;
     }
 
-    if (targetUser.length === 0) {
+    const targetUsers = await this.userService.getUsers(query);
+    const userCount = targetUsers.length;
+
+    if (userCount === 0) {
       throw new BadRequestException('No users found');
     }
 
+    // Prepare arrays in single pass
+    const emails: string[] = [];
+    const expoPushTokens: string[] = [];
+    const recipientIds: string[] = [];
+
+    for (let i = 0; i < userCount; i++) {
+      const user = targetUsers[i];
+      emails.push(user.email);
+      if (user.expoPushToken) {
+        expoPushTokens.push(user.expoPushToken);
+      }
+      recipientIds.push(user._id.toString());
+    }
+
+    // Send email or push notifications based on type
     if (input.type === BroadcastType.EMAIL) {
-      const emails = targetUser.map((user) => user.email);
-      await this.mailService.sendNotification(
-        emails,
-        input.title,
-        input.content,
-      );
+      await this.mailService.sendNotification(emails, input.title, input.content);
     } else if (input.type === BroadcastType.PUSH) {
-      const expoPushTokens = targetUser.map((user) => user.expoPushToken);
       await this.sendExpoPushNotificationToUsers(
         expoPushTokens,
         input.title,
@@ -289,15 +293,33 @@ export class NotificationService {
       );
     }
 
+    // Send in-app messages to all users
+    const broadcastMessage = `**${input.title}**\n\n${input.content}`;
+
+    // Create messages in bulk and get chat room IDs
+    const chatRoomIds = await this.chatService.createBroadcastMessages(
+      senderId,
+      recipientIds,
+      broadcastMessage,
+    );
+
+    // Emit to all rooms via ChatService (which delegates to ChatGateway)
+    this.chatService.emitBroadcastToRooms(
+      chatRoomIds,
+      broadcastMessage,
+      senderId
+    );
+
+    // Save broadcast record
     await this.broadcastModel.create({
       type: input.type,
       target: input.target,
       title: input.title,
       content: input.content,
       sender: senderId,
-      sentCount: targetUser.length,
+      sentCount: userCount,
     });
 
-    return  targetUser.length
+    return userCount;
   }
 }

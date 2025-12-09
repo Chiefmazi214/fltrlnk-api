@@ -7,9 +7,7 @@ import {
   Subscription,
   SubscriptionDocument,
 } from '../boost/models/subscription.model';
-import { Follow, FollowDocument } from '../connection/models/follow.model';
 import { SubscriptionStatus, SubscriptionType } from '../boost/boost.enum';
-import { FollowStatus } from '../connection/like.enum';
 import {
   SweepstakesDashboardDto,
   SweepstakesProgressDto,
@@ -19,19 +17,14 @@ import {
 
 @Injectable()
 export class SweepstakesService {
-  // yahan se sweepstakes config aa raha hai (simple constants)
   private readonly GOAL = 5000; // 5k Pro “subscribers”
   private readonly ACTIVATION_DEADLINE = new Date('2026-07-20T23:59:59.999Z');
 
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-
     @InjectModel(Subscription.name)
     private readonly subscriptionModel: Model<SubscriptionDocument>,
-
-    @InjectModel(Follow.name)
-    private readonly followModel: Model<FollowDocument>,
   ) {}
 
   async getSweepstakesDashboardStats(): Promise<SweepstakesDashboardDto> {
@@ -48,20 +41,12 @@ export class SweepstakesService {
     };
   }
 
-  /**
-   * Total active Pro subscribers
-   * Assumption: 1 user → 1 active subscription max
-   */
   private async getTotalProSubscribers(): Promise<number> {
     return this.subscriptionModel.countDocuments({
-      status: SubscriptionStatus.ACTIVE,
       subscriptionType: SubscriptionType.PRO,
     });
   }
 
-  /**
-   * Nationwide sweepstakes progress
-   */
   private async getSweepstakesProgress(): Promise<SweepstakesProgressDto> {
     const current = await this.getTotalProSubscribers();
     const goal = this.GOAL;
@@ -84,27 +69,15 @@ export class SweepstakesService {
     return `${clamped}%`;
   }
 
-  /**
-   * Activation condition:
-   * - 5000 Pro subscribers
-   * - before / on July 20, 2026
-   */
   private checkActivationCondition(current: number): boolean {
     const now = new Date();
     if (now > this.ACTIVATION_DEADLINE) return false;
     return current >= this.GOAL;
   }
 
-  /**
-   * Top LNK Challenge – Top states by Pro subscribers
-   * - Only users with active Pro subscription
-   * - Group by businessState
-   */
   async getTopStatesBySweepstakes(limit = 5): Promise<StateEntryDto[]> {
-    // 1) Pro subscriptions → userIds
     const proSubs = await this.subscriptionModel.find(
       {
-        status: SubscriptionStatus.ACTIVE,
         subscriptionType: SubscriptionType.PRO,
       },
       { user: 1 },
@@ -113,7 +86,6 @@ export class SweepstakesService {
     const proUserIds = proSubs.map((s) => s.user) as Types.ObjectId[];
     if (!proUserIds.length) return [];
 
-    // 2) Users (only Pro users) grouped by businessState
     const agg = await this.userModel.aggregate([
       {
         $match: {
@@ -141,19 +113,9 @@ export class SweepstakesService {
     }));
   }
 
-  /**
-   * Top Invite Challenge – Top inviters
-   *
-   * Logic:
-   * - invited user = User jiska referralUsername set hai
-   * - qualifying invited user = has active Pro subscription
-   * - group invited Pro users by referralUsername
-   */
   async getTopInviters(limit = 20): Promise<TopInviterDto[]> {
-    // 1) all active Pro subscriptions
     const proSubs = await this.subscriptionModel.find(
       {
-        status: SubscriptionStatus.ACTIVE,
         subscriptionType: SubscriptionType.PRO,
       },
       { user: 1 },
@@ -162,7 +124,6 @@ export class SweepstakesService {
     const proUserIds = proSubs.map((s) => s.user) as Types.ObjectId[];
     if (!proUserIds.length) return [];
 
-    // 2) among Pro users, check their referralUsername
     const agg = await this.userModel.aggregate([
       {
         $match: {
@@ -172,8 +133,8 @@ export class SweepstakesService {
       },
       {
         $group: {
-          _id: '$referralUsername', // inviter's username
-          invitedCount: { $sum: 1 }, // number of Pro users they invited
+          _id: '$referralUsername',
+          invitedCount: { $sum: 1 },
         },
       },
       {
@@ -186,11 +147,10 @@ export class SweepstakesService {
 
     if (!agg.length) return [];
 
-    // 3) ensure inviters actually exist as users
     const inviterUsernames = agg.map((a) => a._id);
     const inviters = await this.userModel.find(
       { username: { $in: inviterUsernames } },
-      { username: 1 },
+      { username: 1, displayName: 1, email: 1, profileImage: 1 },
     );
 
     const inviterSet = new Set(inviters.map((u) => u.username));
@@ -198,56 +158,15 @@ export class SweepstakesService {
     const result: TopInviterDto[] = agg
       .filter((a) => inviterSet.has(a._id))
       .map((a) => ({
-        username: a._id,
+        user: {
+          displayName: inviters.find((u) => u.username === a._id)?.displayName || '',
+          email: inviters.find((u) => u.username === a._id)?.email || '',
+          username: inviters.find((u) => u.username === a._id)?.username || '',
+          imageUrl: inviters.find((u) => u.username === a._id)?.profileImage?.url || '',
+        },
         invitedCount: a.invitedCount,
       }));
 
     return result;
-  }
-
-  /**
-   * OPTIONAL helper:
-   * Top followed Pro creators (followers-based ranking)
-   * – use if you want “most followed Pro businesses” somewhere
-   */
-  async getTopFollowedProUsers(
-    limit = 20,
-  ): Promise<{ userId: string; followers: number }[]> {
-    const proSubs = await this.subscriptionModel.find(
-      {
-        status: SubscriptionStatus.ACTIVE,
-        subscriptionType: SubscriptionType.PRO,
-      },
-      { user: 1 },
-    );
-
-    const proUserIds = proSubs.map((s) => s.user) as Types.ObjectId[];
-    if (!proUserIds.length) return [];
-
-    const agg = await this.followModel.aggregate([
-      {
-        $match: {
-          following: { $in: proUserIds },
-          status: FollowStatus.ACCEPTED,
-        },
-      },
-      {
-        $group: {
-          _id: '$following',
-          followers: { $sum: 1 },
-        },
-      },
-      {
-        $sort: { followers: -1 },
-      },
-      {
-        $limit: limit,
-      },
-    ]);
-
-    return agg.map((a) => ({
-      userId: a._id.toString(),
-      followers: a.followers,
-    }));
   }
 }

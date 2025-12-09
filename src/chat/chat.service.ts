@@ -13,9 +13,12 @@ import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/models/notification.model';
 import { UserDocument } from 'src/user/models/user.model';
 import { ConnectionService } from 'src/connection/connection.service';
+import { ChatGateway } from './chat.gateway';
 
 @Injectable()
 export class ChatService {
+  private chatGateway: ChatGateway;
+
   constructor(
     @Inject(ChatRoomRepositoryInterface)
     private readonly chatRoomRepository: ChatRoomRepositoryInterface,
@@ -28,6 +31,11 @@ export class ChatService {
     @Inject(forwardRef(() => ConnectionService))
     private readonly connectionService: ConnectionService,
   ) {}
+
+  // Method to set gateway reference (called by gateway after initialization)
+  setGateway(gateway: ChatGateway) {
+    this.chatGateway = gateway;
+  }
 
   async updateUserOnlineStatus(
     userId: string,
@@ -245,5 +253,89 @@ export class ChatService {
     }
 
     return colab;
+  }
+
+  async createBroadcastMessages(
+    senderUserId: string,
+    recipientUserIds: string[],
+    content: string,
+  ): Promise<Types.ObjectId[]> {
+    const senderObjectId = new Types.ObjectId(senderUserId);
+    const recipientObjectIds = recipientUserIds.map(id => new Types.ObjectId(id));
+
+    // Bulk find existing chat rooms
+    const existingChatRooms = await this.chatRoomRepository.findAll({
+      users: {
+        $all: [senderObjectId],
+        $size: 2
+      },
+      type: ChatRoomType.GENERAL,
+    });
+
+    // Create a map of existing rooms by recipient ID
+    const existingRoomsMap = new Map<string, Types.ObjectId>();
+    for (const room of existingChatRooms) {
+      const recipientId = room.users.find(
+        (userId) => userId.toString() !== senderUserId
+      );
+      if (recipientId) {
+        existingRoomsMap.set(recipientId.toString(), room._id);
+      }
+    }
+
+    // Find recipients without chat rooms
+    const recipientsNeedingRooms: Types.ObjectId[] = [];
+    for (const recipientId of recipientObjectIds) {
+      if (!existingRoomsMap.has(recipientId.toString())) {
+        recipientsNeedingRooms.push(recipientId);
+      }
+    }
+
+    // Bulk create missing chat rooms
+    if (recipientsNeedingRooms.length > 0) {
+      const newRoomsData = recipientsNeedingRooms.map(recipientId => ({
+        users: [senderObjectId, recipientId],
+        type: ChatRoomType.GENERAL,
+      }));
+
+      const newRooms = await this.chatRoomRepository['model'].insertMany(newRoomsData);
+
+      // Add new rooms to the map
+      for (let i = 0; i < newRooms.length; i++) {
+        existingRoomsMap.set(
+          recipientsNeedingRooms[i].toString(),
+          newRooms[i]._id
+        );
+      }
+    }
+
+    // Bulk create messages
+    const messageData = recipientObjectIds.map(recipientId => ({
+      content,
+      sender: senderObjectId,
+      chatRoom: existingRoomsMap.get(recipientId.toString()),
+      attachments: [],
+    }));
+
+    const createdMessages = await this.messageRepository.createMany(messageData);
+
+    // Return room IDs for WebSocket emission
+    return Array.from(new Set(
+      createdMessages.map(msg => msg.chatRoom)
+    ));
+  }
+
+  emitBroadcastToRooms(chatRoomIds: Types.ObjectId[], messageContent: string, senderId: string) {
+    if (!this.chatGateway) {
+      console.warn('ChatGateway not initialized yet');
+      return;
+    }
+
+    const roomIdStrings: string[] = [];
+    for (let i = 0; i < chatRoomIds.length; i++) {
+      roomIdStrings.push(chatRoomIds[i].toString());
+    }
+
+    this.chatGateway.emitBroadcastToRooms(roomIdStrings, messageContent, senderId);
   }
 }

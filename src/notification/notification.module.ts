@@ -11,6 +11,8 @@ import { TwilioModule } from 'nestjs-twilio';
 import { ConfigService } from '@nestjs/config';
 import { SmsService } from './sms.service';
 import { Broadcast, BroadcastSchema } from './models/broadcast.model';
+import { forwardRef } from '@nestjs/common';
+import { ChatModule } from 'src/chat/chat.module';
 
 @Global()
 @Module({
@@ -37,6 +39,7 @@ import { Broadcast, BroadcastSchema } from './models/broadcast.model';
       { name: Broadcast.name, schema: BroadcastSchema },
     ]),
     UserModule,
+    forwardRef(() => ChatModule),
   ],
   controllers: [NotificationController],
   exports: [NotificationService, MailService, SmsService],

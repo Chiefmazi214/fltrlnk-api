@@ -623,127 +623,130 @@ export class UserService {
   }
 
   async getTopInvites(limit: number = 20) {
-    return (this.userRepository as any).userModel.aggregate([
-      { $match: { referralUsername: { $exists: true, $ne: null } } },
-      {
-        $group: {
-          _id: '$referralUsername',
-          totalSignedUp: { $sum: 1 },
-          totalPurchased: {
-            $sum: {
-              $cond: {
-                if: {
-                  $or: [
-                    { $eq: ['$tier', UserTier.BASIC] },
-                    { $eq: ['$tier', UserTier.PRO] },
-                  ],
-                },
-                then: 1,
-                else: 0,
-              },
-            },
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: 'users',
-          localField: '_id',
-          foreignField: 'username',
-          as: 'referrerUser',
-        },
-      },
-      {
-        $unwind: {
-          path: '$referrerUser',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $addFields: {
-          displayName: '$referrerUser.displayName',
-          email: '$referrerUser.email',
-          handle: '$referrerUser.handle',
-          state: '$referrerUser.state',
-          username: '$referrerUser.username',
-          conversionRate: {
+  return (this.userRepository as any).userModel.aggregate([
+    { $match: { referralUsername: { $exists: true, $ne: null } } },
+    {
+      $group: {
+        _id: '$referralUsername',
+        totalReferrals: { $sum: 1 },
+        activeSubscribers: {
+          $sum: {
             $cond: {
-              if: { $gt: ['$totalSignedUp', 0] },
-              then: {
-                $multiply: [
-                  { $divide: ['$totalPurchased', '$totalSignedUp'] },
-                  100,
+              if: {
+                $or: [
+                  { $eq: ['$tier', UserTier.BASIC] },
+                  { $eq: ['$tier', UserTier.PRO] },
                 ],
               },
+              then: 1,
               else: 0,
             },
           },
         },
       },
-      { $sort: { totalPurchased: -1 } },
-      { $limit: limit },
-    ]);
-  }
-
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: 'username',
+        as: 'referrerUser',
+      },
+    },
+    {
+      $unwind: {
+        path: '$referrerUser',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        displayName: '$referrerUser.displayName',
+        email: '$referrerUser.email',
+        handle: '$referrerUser.handle',
+        state: '$referrerUser.state',
+        username: '$referrerUser.username',
+        referrerTier: '$referrerUser.tier',
+        joinedAt: '$referrerUser.createdAt',
+        conversionRate: {
+          $cond: {
+            if: { $gt: ['$totalReferrals', 0] },
+            then: {
+              $multiply: [
+                { $divide: ['$activeSubscribers', '$totalReferrals'] },
+                100,
+              ],
+            },
+            else: 0,
+          },
+        },
+      },
+    },
+    { $sort: { activeSubscribers: -1 } },
+    { $limit: limit },
+  ]);
+}
   async getAllInvites() {
-    return (this.userRepository as any).userModel.aggregate([
-      { $match: { referralUsername: { $exists: true, $ne: null } } },
-      {
-        $group: {
-          _id: '$referralUsername',
-          totalSignedUp: { $sum: 1 },
-          totalPurchased: {
-            $sum: {
-              $cond: {
-                if: {
-                  $or: [
-                    { $eq: ['$tier', UserTier.BASIC] },
-                    { $eq: ['$tier', UserTier.PRO] },
-                  ],
-                },
-                then: 1,
-                else: 0,
-              },
-            },
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: 'users',
-          localField: '_id',
-          foreignField: 'username',
-          as: 'referrerUser',
-        },
-      },
-      {
-        $addFields: {
-          displayName: '$referrerUser.displayName',
-          email: '$referrerUser.email',
-          handle: '$referrerUser.handle',
-          state: '$referrerUser.state',
-          username: '$referrerUser.username',
-        },
-      },
-      {
-        $addFields: {
-          conversionRate: {
+  return (this.userRepository as any).userModel.aggregate([
+    { $match: { referralUsername: { $exists: true, $ne: null } } },
+    {
+      $group: {
+        _id: '$referralUsername',
+        totalReferrals: { $sum: 1 },
+        activeSubscribers: {
+          $sum: {
             $cond: {
-              if: { $gt: ['$totalSignedUp', 0] },
-              then: {
-                $multiply: [
-                  { $divide: ['$totalPurchased', '$totalSignedUp'] },
-                  100,
+              if: {
+                $or: [
+                  { $eq: ['$tier', UserTier.BASIC] },
+                  { $eq: ['$tier', UserTier.PRO] },
                 ],
               },
+              then: 1,
               else: 0,
             },
           },
         },
       },
-      { $sort: { totalPurchased: -1 } },
-    ]);
-  }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: 'username',
+        as: 'referrerUser',
+      },
+    },
+    {
+      $addFields: {
+        displayName: '$referrerUser.displayName',
+        email: '$referrerUser.email',
+        handle: '$referrerUser.handle',
+        state: '$referrerUser.state',
+        username: '$referrerUser.username',
+        referrerTier: '$referrerUser.tier',
+        joinedAt: '$referrerUser.createdAt',
+      },
+    },
+    {
+      $addFields: {
+        conversionRate: {
+          $cond: {
+            if: { $gt: ['$totalReferrals', 0] },
+            then: {
+              $multiply: [
+                { $divide: ['$activeSubscribers', '$totalReferrals'] },
+                100,
+              ],
+            },
+            else: 0,
+          },
+        },
+      },
+    },
+    { $sort: { activeSubscribers: -1 } },
+  ]);
+}
 
   async adminUpdateUser(userId: string, input: any): Promise<UserDocument> {
     const updateData: any = {};

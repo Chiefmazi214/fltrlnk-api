@@ -280,18 +280,18 @@ export class UserController {
   }
 
   @Get('invites/top')
-  @UseGuards(AuthGuard)
-  @Roles(RoleEnum.ADMIN)
-  @ApiBearerAuth()
+  // @UseGuards(AuthGuard)
+  // @Roles(RoleEnum.ADMIN)
+  // @ApiBearerAuth()
   @ApiOperation({ summary: 'Get top 20 invites' })
   async getTopInvites() {
     return this.userService.getTopInvites();
   }
 
   @Get('invites/all')
-  @UseGuards(AuthGuard)
-  @Roles(RoleEnum.ADMIN)
-  @ApiBearerAuth()
+  // @UseGuards(AuthGuard)
+  // @Roles(RoleEnum.ADMIN)
+  // @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all invites' })
   async getAllInvites() {
     return this.userService.getAllInvites();

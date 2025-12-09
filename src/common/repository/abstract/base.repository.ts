@@ -11,6 +11,7 @@ export interface PaginationOptions {
 
 export interface BaseRepository<T> {
     create(data: Partial<T>, populate?: PopulationOptions[]): Promise<T>;
+    createMany(data: Partial<T>[]): Promise<T[]>;
     findById(id: string, populate?: PopulationOptions[]): Promise<T | null>;
     findOne(filter: object, populate?: PopulationOptions[]): Promise<T | null>;
     findAll(filter?: object, populate?: PopulationOptions[], pagination?: PaginationOptions): Promise<T[]>;

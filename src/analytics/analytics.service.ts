@@ -148,8 +148,11 @@ export class AnalyticsService {
       pro: revenueData.length > 0 ? revenueData[0].proRevenue : 0,
     };
 
-    const { progress: sweepstakesProgress, topStates: topStatesBySweepstakes } =
-      await this.sweepstakesService.getSweepstakesDashboardStats();
+    const {
+      progress: sweepstakesProgress,
+      topStates: topStatesBySweepstakes,
+      topInviters: topInvitersBySweepstakes,
+    } = await this.sweepstakesService.getSweepstakesDashboardStats();
 
     return {
       monthlyActiveUsers,
@@ -158,6 +161,7 @@ export class AnalyticsService {
       revenue,
       sweepstakesProgress,
       topStatesBySweepstakes,
+      topInvitersBySweepstakes,
     };
   }
 
@@ -209,7 +213,6 @@ export class AnalyticsService {
     const thirtyDaysAgo = new Date(now);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    // Aggregate users by date for the last 30 days
     const usersByDate = await this.userModel.aggregate([
       {
         $facet: {
@@ -303,7 +306,6 @@ export class AnalyticsService {
       },
     ]);
 
-    // Get cumulative total users
     const totalUsersCount = await this.userModel.countDocuments().exec();
 
     return {
@@ -335,7 +337,6 @@ export class AnalyticsService {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    // Use transaction model to fetch data for the last 30 days
     const revenueByDate = await this.transactionModel.aggregate([
       {
         $match: {

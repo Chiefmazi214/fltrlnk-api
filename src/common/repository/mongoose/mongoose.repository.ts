@@ -13,6 +13,10 @@ export class MongooseRepositoryBase<T extends Document> implements BaseRepositor
     return saved;
   }
 
+  async createMany(data: Partial<T>[]): Promise<T[]> {
+    return this.model.insertMany(data) as unknown as T[];
+  }
+
   async findById(id: string, populate?: PopulationOptions[]): Promise<T | null> {
     const query = this.model.findById(id);
     if (populate) {

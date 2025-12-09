@@ -115,6 +115,28 @@ export class SweepstakesProgressResponseDto {
   states: StateProgressDto[];
 }
 
+export class UserDto {
+  @ApiProperty({ example: 'John Doe' })
+  displayName: string;
+
+  @ApiProperty({ example: 'john.doe@example.com' })
+  email: string;
+
+  @ApiProperty({ example: 'john_doe' })
+  username: string;
+
+  @ApiProperty({ example: 'https://example.com/image.jpg' })
+  imageUrl: string;
+}
+
+export class TopInviterDto {
+  @ApiProperty({ type: UserDto })
+  user: UserDto;
+
+  @ApiProperty({ example: 25 })
+  invitedCount: number;
+}
+
 export class DashboardStatsDto {
   @ApiProperty({ type: MonthlyActiveUsersDto })
   monthlyActiveUsers: MonthlyActiveUsersDto;
@@ -133,6 +155,9 @@ export class DashboardStatsDto {
 
   @ApiProperty({ type: [StateEntryDto] })
   topStatesBySweepstakes: StateEntryDto[];
+
+  @ApiProperty({ type: [TopInviterDto] })
+  topInvitersBySweepstakes: TopInviterDto[];
 }
 
 export class UserMatrixDto {
@@ -155,19 +180,6 @@ export class RevenueMatrixDto {
 
   @ApiProperty({ example: 0 })
   totalTransactions: number;
-}
-
-export class TopInviterDto {
-  @ApiProperty({ description: 'Inviter username', example: 'john_doe' })
-  @IsString()
-  username: string;
-
-  @ApiProperty({
-    description: 'Number of invited Pro subscribers (qualified)',
-    example: 25,
-  })
-  @IsNumber()
-  invitedCount: number;
 }
 
 export class SweepstakesDashboardDto {

@@ -8,7 +8,6 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { UserDocument } from 'src/user/models/user.model';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcryptjs';
-import { MailService } from 'src/mail/mail.service';
 import { VerificationService } from 'src/verification/verification.service';
 import { VerificationCodeTypes } from 'src/verification/models/verification-code.model';
 import * as fs from 'fs';
@@ -20,6 +19,7 @@ import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { GoogleProfile } from './dtos/google-profile.dto';
 import { FacebookProfile } from './dtos/facebook-profile.dto';
 import { UpdatePasswordDto } from './dtos/update-password.dto';
+import { RoleEnum } from 'src/user/models/role.model';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +27,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly verificationService: VerificationService,
-  ) { }
+  ) {}
 
   async updateLastActionDate(userId: string) {
     return this.userService.updateUser(userId, {
@@ -82,16 +82,28 @@ export class AuthService {
       loginDto.email,
     );
     if (!user) throw new UnauthorizedException('Invalid credentials');
-    if (!user.password /* && user.googleProviderId */)
-      throw new UnauthorizedException('Please login with google');
+    if (!user.password)
+      throw new UnauthorizedException('Please login with email or phone');
     const passwordTrue = await bcrypt.compare(loginDto.password, user.password);
     if (!passwordTrue) throw new UnauthorizedException('Invalid credentials');
     return this.jwtResponse(user);
   }
 
-  async sendEmailVerificationOtp(email: string) {
-    console.log("------");
+  async loginAdmin(loginDto: LoginDto) {
+    console.log('LoginDto', loginDto.email, loginDto.password);
+    const user = await this.userService.getUserByEmail(loginDto.email);
+    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user.password)
+      throw new UnauthorizedException('Please login with email or phone');
+    const passwordTrue = await bcrypt.compare(loginDto.password, user.password);
+    if (!passwordTrue) throw new UnauthorizedException('Invalid credentials');
+    if (!user.roles.some((role) => role.name === RoleEnum.ADMIN))
+      throw new UnauthorizedException('Invalid credentials');
 
+    return this.jwtResponse(user);
+  }
+
+  async sendEmailVerificationOtp(email: string) {
     const user = await this.userService.getUserByEmail(email);
     if (!user) throw new UnauthorizedException();
     await this.verificationService.createVerificationCode(
