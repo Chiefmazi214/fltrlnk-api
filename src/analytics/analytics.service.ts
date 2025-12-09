@@ -7,16 +7,10 @@ import {
   NewUsersDto,
   SubscribersDto,
   RevenueDto,
-  SweepstakesProgressDto,
-  StateEntryDto,
-  SweepstakesProgressResponseDto,
-  StateProgressDto,
   UserMatrixDto,
   RevenueMatrixDto,
 } from './dtos/dashboard-stats.dto';
 import { UserService } from 'src/user/user.service';
-import { BusinessService } from 'src/business/business.service';
-import { BoostService } from 'src/boost/boost.service';
 import {
   SubscriptionType,
   SubscriptionStatus,
@@ -32,6 +26,7 @@ import {
   Transaction,
   TransactionDocument,
 } from 'src/boost/models/transactions.model';
+import { SweepstakesService } from './sweepstakes.service';
 
 @Injectable()
 export class AnalyticsService {
@@ -42,8 +37,7 @@ export class AnalyticsService {
     @InjectModel(Transaction.name)
     private transactionModel: Model<TransactionDocument>,
     private readonly userService: UserService,
-    private readonly businessService: BusinessService,
-    private readonly boostService: BoostService,
+    private readonly sweepstakesService: SweepstakesService,
   ) {}
 
   async getDashboardStats(): Promise<DashboardStatsDto> {
@@ -51,7 +45,7 @@ export class AnalyticsService {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     const [
       totalUsers,
       newUsersTotal,
@@ -154,15 +148,8 @@ export class AnalyticsService {
       pro: revenueData.length > 0 ? revenueData[0].proRevenue : 0,
     };
 
-    // TODO: make it dynamic
-    const sweepstakesProgress: SweepstakesProgressDto = {
-      current: 0,
-      goal: 5000,
-      percentage: '0%',
-    };
-
-    const topStatesBySweepstakes: StateEntryDto[] =
-      this.getTopStatesBySweepstakes();
+    const { progress: sweepstakesProgress, topStates: topStatesBySweepstakes } =
+      await this.sweepstakesService.getSweepstakesDashboardStats();
 
     return {
       monthlyActiveUsers,
@@ -172,39 +159,6 @@ export class AnalyticsService {
       sweepstakesProgress,
       topStatesBySweepstakes,
     };
-  }
-
-  getSweepstakesProgress(): SweepstakesProgressResponseDto {
-    // TODO: Mock data, to be replaced with real aggregation later
-    const states: StateProgressDto[] = [
-      { state: 'CA', entries: 12500, percentage: 62.5, goal: 10000 },
-      { state: 'TX', entries: 8500, percentage: 85.0, goal: 5000 },
-      { state: 'FL', entries: 3200, percentage: 64.0, goal: 1000 },
-      { state: 'NY', entries: 2800, percentage: 56.0, goal: 1000 },
-      { state: 'IL', entries: 1500, percentage: 30.0, goal: 1000 },
-      { state: 'PA', entries: 1200, percentage: 24.0, goal: 1000 },
-      { state: 'OH', entries: 950, percentage: 95.0, goal: 1000 },
-      { state: 'GA', entries: 750, percentage: 75.0, goal: 1000 },
-      { state: 'NC', entries: 600, percentage: 60.0, goal: 1000 },
-      { state: 'MI', entries: 450, percentage: 45.0, goal: 1000 },
-    ];
-
-    return {
-      title: 'Sweepstakes Progress by State',
-      subtitle: 'State-level milestone tracking',
-      states,
-    };
-  }
-
-  getTopStatesBySweepstakes(): StateEntryDto[] {
-    // TODO: Mock data, to be replaced with real aggregation later
-    return [
-      { state: 'CA', entries: 201 },
-      { state: 'NY', entries: 173 },
-      { state: 'TX', entries: 144 },
-      { state: 'FL', entries: 109 },
-      { state: 'IL', entries: 93 },
-    ];
   }
 
   async getUserMatrix(): Promise<UserMatrixDto> {

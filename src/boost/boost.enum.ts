@@ -18,7 +18,6 @@ export enum TransactionType {
   BOOST = 'boost',
 }
 
-
 export enum SubscriptionType {
   BASIC = 'basic',
   PRO = 'pro',

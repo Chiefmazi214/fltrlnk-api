@@ -1,10 +1,13 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AnalyticsService } from './analytics.service';
 import {
   DashboardStatsDto,
-  StateEntryDto,
-  SweepstakesProgressResponseDto,
   UserMatrixDto,
   RevenueMatrixDto,
 } from './dtos/dashboard-stats.dto';
@@ -15,12 +18,12 @@ import { RoleEnum } from 'src/user/models/role.model';
 @ApiTags('Analytics')
 @Controller('analytics')
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) { }
+  constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get('dashboard')
-  @UseGuards(AuthGuard)
-  @Roles(RoleEnum.ADMIN)
-  @ApiBearerAuth()
+  // @UseGuards(AuthGuard)
+  // @Roles(RoleEnum.ADMIN)
+  // @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all dashboard statistics' })
   @ApiResponse({
     status: 200,
@@ -29,34 +32,6 @@ export class AnalyticsController {
   })
   getDashboardStats(): Promise<DashboardStatsDto> {
     return this.analyticsService.getDashboardStats();
-  }
-
-  @Get('sweepstakes-progress')
-  @UseGuards(AuthGuard)
-  @Roles(RoleEnum.ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get sweepstakes progress by state' })
-  @ApiResponse({
-    status: 200,
-    description: 'Sweepstakes progress by state retrieved successfully',
-    type: SweepstakesProgressResponseDto,
-  })
-  getSweepstakesProgress(): SweepstakesProgressResponseDto {
-    return this.analyticsService.getSweepstakesProgress();
-  }
-
-  @Get('top-states-sweepstakes')
-  @UseGuards(AuthGuard)
-  @Roles(RoleEnum.ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get top states by sweepstakes entries' })
-  @ApiResponse({
-    status: 200,
-    description: 'Top states by sweepstakes entries retrieved successfully',
-    type: [StateEntryDto],
-  })
-  getTopStatesBySweepstakes(): StateEntryDto[] {
-    return this.analyticsService.getTopStatesBySweepstakes();
   }
 
   @Get('user-matrix')
