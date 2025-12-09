@@ -15,7 +15,7 @@ import {
 } from './dto/webhook.dto';
 import { ActiveBoost, ActiveBoostDocument } from './models/active-boost.model';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { ActiveBoostStatus, BoostType, TransactionType } from './boost.enum';
+import { ActiveBoostStatus, BoostType, SubscriptionType, TransactionType } from './boost.enum';
 import {
   Subscription,
   SubscriptionDocument,
@@ -40,7 +40,7 @@ export class BoostService {
     private readonly subscriptionModel: Model<SubscriptionDocument>,
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<TransactionDocument>,
-  ) { }
+  ) {}
 
   async deleteRevenueCat(revenuecatId: string) {
     return this.revenueCatModel.findOneAndDelete({ revenuecatId });
@@ -128,21 +128,33 @@ export class BoostService {
 
           const boost = await this.boostModel.findOne({ user: userId });
 
+          const isProSubscription = subscription.subscriptionType === SubscriptionType.PRO;
+
           if (!boost) {
             await this.boostModel.create({
               user: userId,
               boosts: {
-                fltr: 0,
-                lnk: 0,
-                match: 0,
-                gps: 0,
-                users: 5,
-                search: 0,
-                loc: 0,
+                fltr: isProSubscription ? 100 : 0,
+                lnk: isProSubscription ? 100 : 0,
+                match: isProSubscription ? 100 : 0,
+                gps: isProSubscription ? 100 : 0,
+                users: isProSubscription ? 100 : 5,
+                search: isProSubscription ? 100 : 0,
+                loc: isProSubscription ? 100 : 0,
               },
             });
           } else {
-            boost.boosts.users += 5;
+            if (isProSubscription) {
+              boost.boosts.fltr += 100;
+              boost.boosts.lnk += 100;
+              boost.boosts.match += 100;
+              boost.boosts.gps += 100;
+              boost.boosts.users += 100;
+              boost.boosts.search += 100;
+              boost.boosts.loc += 100;
+            } else {
+              boost.boosts.users += 5;
+            }
             await boost.save();
           }
 
@@ -260,7 +272,7 @@ export class BoostService {
   }
 
   parseProductId(productId: string) {
-    const regex = /^([a-z]+)(?:_(\d+))?_boosts$/;
+    const regex = /^([a-z]+)_boosts_(\d+)$/;
 
     const match = productId.match(regex);
 
@@ -268,16 +280,18 @@ export class BoostService {
       throw new BadRequestException('Invalid product id format');
     }
 
-    const [, type, count] = match;
+    const [, type, countStr] = match;
 
     const validTypes = Object.values(BoostType);
     if (!validTypes.includes(type as BoostType)) {
       throw new BadRequestException('Invalid boost type');
     }
 
+    const count = parseInt(countStr, 10);
+
     return {
       type: type as BoostType,
-      count: count ? parseInt(count, 10) : 1,
+      count: count,
     };
   }
 
@@ -422,9 +436,7 @@ export class BoostService {
     return { message: 'Boosts given successfully' };
   }
 
-  async getAllSubscriptions(
-    query: GetAllSubscriptionsDto,
-  ): Promise<any> {
+  async getAllSubscriptions(query: GetAllSubscriptionsDto): Promise<any> {
     const skip = (query.page - 1) * query.limit;
     const [data, total] = await Promise.all([
       this.subscriptionModel
