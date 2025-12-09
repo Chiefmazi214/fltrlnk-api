@@ -21,9 +21,9 @@ export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get('dashboard')
-  // @UseGuards(AuthGuard)
-  // @Roles(RoleEnum.ADMIN)
-  // @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Roles(RoleEnum.ADMIN)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all dashboard statistics' })
   @ApiResponse({
     status: 200,

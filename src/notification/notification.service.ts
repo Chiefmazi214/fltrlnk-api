@@ -293,24 +293,6 @@ export class NotificationService {
       );
     }
 
-    // Send in-app messages to all users
-    const broadcastMessage = `**${input.title}**\n\n${input.content}`;
-
-    // Create messages in bulk and get chat room IDs
-    const chatRoomIds = await this.chatService.createBroadcastMessages(
-      senderId,
-      recipientIds,
-      broadcastMessage,
-    );
-
-    // Emit to all rooms via ChatService (which delegates to ChatGateway)
-    this.chatService.emitBroadcastToRooms(
-      chatRoomIds,
-      broadcastMessage,
-      senderId
-    );
-
-    // Save broadcast record
     await this.broadcastModel.create({
       type: input.type,
       target: input.target,

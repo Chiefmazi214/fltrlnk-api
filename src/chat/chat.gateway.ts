@@ -228,7 +228,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     emitBroadcastToRooms(chatRoomIds: string[], messageContent: string, senderId: string) {
         const timestamp = new Date().toISOString();
-        // Emit to all rooms - Socket.IO handles this efficiently internally
+
         const length = chatRoomIds.length;
         for (let i = 0; i < length; i++) {
             this.server.to(chatRoomIds[i]).emit('newMessage', {
