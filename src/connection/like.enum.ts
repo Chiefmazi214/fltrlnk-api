@@ -8,3 +8,10 @@ export enum FollowStatus {
   ACCEPTED = 'accepted',
   REJECTED = 'rejected',
 }
+
+export enum FollowStatusFilter {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted',
+  REJECTED = 'rejected',
+  ALL = 'all',
+}

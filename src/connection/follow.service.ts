@@ -1,12 +1,14 @@
 import { Inject, Injectable, BadRequestException } from '@nestjs/common';
 import { FollowRepositoryInterface } from './repositories/abstract/follow.repository-interface';
 import { FollowDocument } from './models/follow.model';
-import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { PaginatedResultDto } from 'src/common/pagination/paginated-result.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/models/notification.model';
 import { FollowStatus } from './like.enum';
 import { GetFollowersQueryDto } from './dtos/follow.dto';
+import { Types } from 'mongoose';
+import { BusinessTypeFilter } from 'src/business/business.enum';
+import { ProfileType } from 'src/user/user.enum';
 
 @Injectable()
 export class FollowService {
@@ -36,8 +38,8 @@ export class FollowService {
 
     const follow = await this.followRepository.create(
       {
-        follower: userId,
-        following: followingId,
+        follower: new Types.ObjectId(userId),
+        following: new Types.ObjectId(followingId),
         status,
       },
       [
@@ -114,22 +116,89 @@ export class FollowService {
 
   async getFollowers(
     userId: string,
-    query: GetFollowersQueryDto,
+    input: GetFollowersQueryDto,
   ): Promise<PaginatedResultDto<FollowDocument>> {
-    const { page = 1, limit = 10, status = FollowStatus.ACCEPTED } = query;
+    const { page = 1, limit = 10, status = 'all', businessType } = input;
     const skip = (page - 1) * limit;
 
-    const [followers, total] = await Promise.all([
-      this.followRepository.findAll(
-        { following: userId, status },
-        [
-          { path: 'follower', select: 'username email profileImage' },
-          { path: 'following', select: 'username email profileImage' },
-        ],
-        { skip, limit },
-      ),
-      this.followRepository.count({ following: userId, status }),
+    const matchStage: any = {
+      following: new Types.ObjectId(userId),
+      ...(status !== 'all' ? { status } : {}),
+    };
+
+    const pipeline: any[] = [
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'follower',
+          foreignField: '_id',
+          as: 'followerUser',
+        },
+      },
+      { $unwind: '$followerUser' },
+    ];
+
+    if (businessType && businessType !== BusinessTypeFilter.ALL && businessType !== BusinessTypeFilter.USERS) {
+      pipeline.push({
+        $match: {
+          'followerUser.businessType': businessType,
+        },
+      });
+    }
+
+    if (businessType && businessType === BusinessTypeFilter.USERS) {
+      pipeline.push({
+        $match: {
+          'followerUser.profileType': ProfileType.INDIVIDUAL,
+        },
+      });
+    }
+
+    pipeline.push(
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'following',
+          foreignField: '_id',
+          as: 'followingUser',
+        },
+      },
+      { $unwind: '$followingUser' },
+      {
+        $project: {
+          _id: 1,
+          follower: {
+            _id: '$followerUser._id',
+            username: '$followerUser.username',
+            email: '$followerUser.email',
+            profileImage: '$followerUser.profileImage',
+            businessType: '$followerUser.businessType',
+          },
+          following: {
+            _id: '$followingUser._id',
+            username: '$followingUser.username',
+            email: '$followingUser.email',
+            profileImage: '$followingUser.profileImage',
+            businessType: '$followingUser.businessType',
+          },
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    );
+
+    const [followers, countResult] = await Promise.all([
+      this.followRepository.aggregate([
+        ...pipeline,
+        { $skip: skip },
+        { $limit: limit },
+      ]),
+      this.followRepository.aggregate([...pipeline, { $count: 'total' }]),
     ]);
+
+    const total = countResult[0]?.total || 0;
 
     return {
       data: followers,
@@ -143,20 +212,85 @@ export class FollowService {
     userId: string,
     input: GetFollowersQueryDto,
   ): Promise<PaginatedResultDto<FollowDocument>> {
-    const { page = 1, limit = 10, status = 'all' } = input;
+    const { page = 1, limit = 10, status, businessType } = input;
     const skip = (page - 1) * limit;
 
-    const [following, total] = await Promise.all([
-      this.followRepository.findAll(
-        { follower: userId, ...(status !== 'all' ? { status } : {}) },
-        [
-          { path: 'follower', select: 'username email profileImage' },
-          { path: 'following', select: 'username email profileImage' },
-        ],
-        { skip, limit },
-      ),
-      this.followRepository.count({ follower: userId, ...(status ? { status } : {}) }),
+    const matchStage: any = {
+      follower: new Types.ObjectId(userId),
+      ...(status !== 'all' ? { status } : {}),
+    };
+
+    const pipeline: any[] = [
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'following',
+          foreignField: '_id',
+          as: 'followingUser',
+        },
+      },
+      { $unwind: '$followingUser' },
+    ];
+
+    if (businessType && businessType !== BusinessTypeFilter.ALL && businessType !== BusinessTypeFilter.USERS) {
+      pipeline.push({
+        $match: {
+          'followingUser.businessType': businessType,
+        },
+      });
+    }
+    if (businessType && businessType === BusinessTypeFilter.USERS) {
+      pipeline.push({
+        $match: {
+          'followingUser.profileType': ProfileType.INDIVIDUAL,
+        },
+      });
+    }
+
+    pipeline.push(
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'follower',
+          foreignField: '_id',
+          as: 'followerUser',
+        },
+      },
+      { $unwind: '$followerUser' },
+      {
+        $project: {
+          _id: 1,
+          follower: {
+            _id: '$followerUser._id',
+            username: '$followerUser.username',
+            email: '$followerUser.email',
+            profileImage: '$followerUser.profileImage',
+          },
+          following: {
+            _id: '$followingUser._id',
+            username: '$followingUser.username',
+            email: '$followingUser.email',
+            profileImage: '$followingUser.profileImage',
+            businessType: '$followingUser.businessType',
+          },
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    );
+
+    const [following, totalResult] = await Promise.all([
+      this.followRepository.aggregate([
+        ...pipeline,
+        { $skip: skip },
+        { $limit: limit },
+      ]),
+      this.followRepository.aggregate([...pipeline, { $count: 'total' }]),
     ]);
+
+    const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
     return {
       data: following,

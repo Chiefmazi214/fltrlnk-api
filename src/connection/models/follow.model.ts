@@ -5,10 +5,10 @@ import { FollowStatus } from "../like.enum";
 @Schema({ timestamps: true, collection: "follows" })
 export class Follow {
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-    follower: string;
+    follower: Types.ObjectId | string;
 
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-    following: string;
+    following: Types.ObjectId | string;
 
     @Prop({ enum: FollowStatus, default: FollowStatus.PENDING })
     status: FollowStatus;
