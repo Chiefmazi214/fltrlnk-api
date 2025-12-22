@@ -14,7 +14,7 @@
 //     credentials: true,
 //     allowedHeaders: ['Authorization', 'Content-Type'],
 //   },
-//   namespace: '/chat',
+//   namespace: '/chat', 
 //   transports: ['websocket', 'polling'],
 //   allowEIO3: true,
 //   pingTimeout: 60000,
