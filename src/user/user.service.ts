@@ -198,10 +198,10 @@ export class UserService {
   async updateReferralUsername(
     userId: string,
     input: UpdateReferralUsernameDto,
-  ): Promise<UserDocument> {
+  ) {
     if (!input.referralUsername) {
       await this.boostService.assignReferralBoost(userId);
-      return;
+      return {message: 'referral updated'}
     }
 
     const referralUser = await this.userRepository.findByUsername(
@@ -209,7 +209,7 @@ export class UserService {
     );
     if (!referralUser) {
       await this.boostService.assignReferralBoost(userId);
-      return;
+      return {message: 'referral updated'}
     }
 
     const updatedUser = await this.userRepository.update(userId, {
@@ -220,7 +220,7 @@ export class UserService {
       referralUser._id.toString(),
     );
 
-    return updatedUser;
+      return {message: 'referral updated'}
   }
 
   async updateUserProfileImage(
