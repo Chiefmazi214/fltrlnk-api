@@ -15,7 +15,12 @@ import {
 } from './dto/webhook.dto';
 import { ActiveBoost, ActiveBoostDocument } from './models/active-boost.model';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { ActiveBoostStatus, BoostType, SubscriptionType, TransactionType } from './boost.enum';
+import {
+  ActiveBoostStatus,
+  BoostType,
+  SubscriptionType,
+  TransactionType,
+} from './boost.enum';
 import {
   Subscription,
   SubscriptionDocument,
@@ -129,19 +134,20 @@ export class BoostService {
 
           const boost = await this.boostModel.findOne({ user: userId });
 
-          const isProSubscription = subscription.subscriptionType === SubscriptionType.PRO;
+          const isProSubscription =
+            subscription.subscriptionType === SubscriptionType.PRO;
 
           if (!boost) {
             await this.boostModel.create({
               user: userId,
               boosts: {
-                fltr: isProSubscription ? 100 : 0,
-                lnk: isProSubscription ? 100 : 0,
-                match: isProSubscription ? 100 : 0,
-                gps: isProSubscription ? 100 : 0,
+                fltr: isProSubscription ? 100 : 5,
+                lnk: isProSubscription ? 100 : 5,
+                match: isProSubscription ? 100 : 5,
+                gps: isProSubscription ? 100 : 5,
                 users: isProSubscription ? 100 : 5,
-                search: isProSubscription ? 100 : 0,
-                loc: isProSubscription ? 100 : 0,
+                search: isProSubscription ? 100 : 5,
+                loc: isProSubscription ? 100 : 5,
               },
             });
           } else {
@@ -154,7 +160,13 @@ export class BoostService {
               boost.boosts.search += 100;
               boost.boosts.loc += 100;
             } else {
-              boost.boosts.users += 5;
+                boost.boosts.fltr += 5;
+                boost.boosts.lnk += 5;
+                boost.boosts.match += 5;
+                boost.boosts.gps += 5;
+                boost.boosts.users += 5;
+                boost.boosts.search += 5;
+                boost.boosts.loc += 5;
             }
             await boost.save();
           }
@@ -250,10 +262,36 @@ export class BoostService {
       if (!referralUserBoosts) {
         await this.boostModel.create({
           user: referralUserId,
-          boosts: { users: 35 },
+          boosts: {
+            users: 5,
+            fltr: 5,
+            lnk: 5,
+            match: 5,
+            gps: 5,
+            loc: 5,
+            search: 5,
+          },
         });
       } else {
-        referralUserBoosts.boosts.users += 35;
+        if (!referralUserBoosts.boosts) {
+          referralUserBoosts.boosts = {
+            users: 5,
+            fltr: 5,
+            lnk: 5,
+            match: 5,
+            gps: 5,
+            loc: 5,
+            search: 5,
+          };
+        } else {
+          referralUserBoosts.boosts.users += 5;
+          referralUserBoosts.boosts.fltr += 5;
+          referralUserBoosts.boosts.lnk += 5;
+          referralUserBoosts.boosts.match += 5;
+          referralUserBoosts.boosts.gps += 5;
+          referralUserBoosts.boosts.loc += 5;
+          referralUserBoosts.boosts.search += 5;
+        }
         await referralUserBoosts.save();
       }
     }
@@ -264,10 +302,36 @@ export class BoostService {
     if (!userBoosts) {
       await this.boostModel.create({
         user: userId,
-        boosts: { users: 35 },
+        boosts: {
+          users: 5,
+          fltr: 5,
+          lnk: 5,
+          match: 5,
+          gps: 5,
+          loc: 5,
+          search: 5,
+        },
       });
     } else {
-      userBoosts.boosts.users += 35;
+      if (!userBoosts.boosts) {
+        userBoosts.boosts = {
+          users: 5,
+          fltr: 5,
+          lnk: 5,
+          match: 5,
+          gps: 5,
+          loc: 5,
+          search: 5,
+        };
+      } else {
+        userBoosts.boosts.users += 5;
+        userBoosts.boosts.fltr += 5;
+        userBoosts.boosts.lnk += 5;
+        userBoosts.boosts.match += 5;
+        userBoosts.boosts.gps += 5;
+        userBoosts.boosts.loc += 5;
+        userBoosts.boosts.search += 5;
+      }
       await userBoosts.save();
     }
   }

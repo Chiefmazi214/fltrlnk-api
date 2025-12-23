@@ -424,17 +424,35 @@ export class SubscriptionService {
       await this.boostModel.create({
         user: userId,
         boosts: {
-          fltr: 0,
-          lnk: 0,
-          match: 0,
-          gps: 0,
+          fltr: 5,
+          lnk: 5,
+          match: 5,
+          gps: 5,
           users: 5,
-          search: 0,
-          loc: 0,
+          search: 5,
+          loc: 5,
         },
       });
     } else {
-      boost.boosts.users += 5;
+      if (!boost.boosts) {
+        boost.boosts = {
+          fltr: 5,
+          lnk: 5,
+          match: 5,
+          gps: 5,
+          users: 5,
+          search: 5,
+          loc: 5,
+        };
+      } else {
+        boost.boosts.fltr += 5;
+        boost.boosts.lnk += 5;
+        boost.boosts.match += 5;
+        boost.boosts.gps += 5;
+        boost.boosts.users += 5;
+        boost.boosts.search += 5;
+        boost.boosts.loc += 5;
+      }
       await boost.save();
     }
   }
