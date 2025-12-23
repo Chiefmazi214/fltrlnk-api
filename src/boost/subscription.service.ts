@@ -24,6 +24,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { TransactionType } from './boost.enum';
 import { PromoCode, PromoCodeDocument } from './models/promo-code.model';
 import { ConfigService } from '@nestjs/config';
+import { Boost, BoostDocument } from './models/boost.model';
 
 @Injectable()
 export class SubscriptionService {
@@ -35,6 +36,8 @@ export class SubscriptionService {
     private readonly transactionModel: Model<TransactionDocument>,
     @InjectModel(PromoCode.name)
     private readonly promoCodeModel: Model<PromoCodeDocument>,
+    @InjectModel(Boost.name)
+    private readonly boostModel: Model<BoostDocument>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly configService: ConfigService,
@@ -132,6 +135,7 @@ export class SubscriptionService {
         : UserTier.PRO;
     await this.userService.updateUser(event.app_user_id, { tier });
 
+    await this.addBasicSubscriptionBoosts(event.app_user_id);
     await this.userService.markAsVerifiedBusinessUser(event.app_user_id);
 
     this.logger.log(
@@ -200,6 +204,7 @@ export class SubscriptionService {
       willRenew: true,
     });
 
+    await this.addProSubscriptionBoosts(event.app_user_id);
     await this.userService.markAsVerifiedBusinessUser(event.app_user_id);
 
     this.logger.log(`Renewal processed for subscription: ${event.app_user_id}`);
@@ -385,6 +390,55 @@ export class SubscriptionService {
     return this.subscriptionRepository.hasActiveSubscription(userId);
   }
 
+  async addProSubscriptionBoosts(userId: string) {
+    const boost = await this.boostModel.findOne({ user: userId });
+
+    if (!boost) {
+      await this.boostModel.create({
+        user: userId,
+        boosts: {
+          fltr: 100,
+          lnk: 100,
+          match: 100,
+          gps: 100,
+          users: 100,
+          search: 100,
+          loc: 100,
+        },
+      });
+    } else {
+      boost.boosts.fltr += 100;
+      boost.boosts.lnk += 100;
+      boost.boosts.match += 100;
+      boost.boosts.gps += 100;
+      boost.boosts.users += 100;
+      boost.boosts.search += 100;
+      boost.boosts.loc += 100;
+      await boost.save();
+    }
+  }
+
+  async addBasicSubscriptionBoosts(userId: string) {
+    const boost = await this.boostModel.findOne({ user: userId });
+    if (!boost) {
+      await this.boostModel.create({
+        user: userId,
+        boosts: {
+          fltr: 0,
+          lnk: 0,
+          match: 0,
+          gps: 0,
+          users: 5,
+          search: 0,
+          loc: 0,
+        },
+      });
+    } else {
+      boost.boosts.users += 5;
+      await boost.save();
+    }
+  }
+
   async applyPromoCode(userId: string, code: string) {
     const promoCode = await this.promoCodeModel.findOne({ code });
     if (!promoCode) {
@@ -412,6 +466,7 @@ export class SubscriptionService {
       willRenew: false,
     });
 
+    await this.addProSubscriptionBoosts(userId);
     await this.userService.markAsVerifiedBusinessUser(userId);
     await this.userService.updateUser(userId, {
       tier: UserTier.PRO,

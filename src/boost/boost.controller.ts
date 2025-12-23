@@ -10,7 +10,7 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { BoostService } from './boost.service';
 import { UpdateRevenueCatInput } from './dto/revenuecat.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
@@ -42,6 +42,7 @@ export class BoostController {
 
   @Put(':revenuecatId')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @Roles(RoleEnum.ADMIN)
   updateRevenueCatFeatures(
     @Param('revenuecatId') revenuecatId: string,
@@ -55,12 +56,14 @@ export class BoostController {
 
   @Get('')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   getUserBoosts(@Req() req: Request) {
     return this.boostService.getUserBoosts(req.user?._id);
   }
 
   @Get('plans')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @Roles(RoleEnum.ADMIN)
   getAllRevenueCatPlans() {
     return this.boostService.getAllPlans();
@@ -68,6 +71,7 @@ export class BoostController {
 
   @Delete(':revenuecatId')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @Roles(RoleEnum.ADMIN)
   async deleteRevenueCat(@Param('revenuecatId') revenuecatId: string) {
     return this.boostService.deleteRevenueCat(revenuecatId);
@@ -75,6 +79,7 @@ export class BoostController {
 
   @Get(':revenuecatId')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @Roles(RoleEnum.ADMIN)
   getRevenueCatById(@Param('revenuecatId') revenuecatId: string) {
     return this.boostService.getRevenueCatById(revenuecatId);
@@ -82,6 +87,7 @@ export class BoostController {
 
   @Post('promo-code/apply')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async applyPromoCode(
     @Req() req: Request,
     @Body() applyPromoCodeDto: ApplyPromoCodeDto,
@@ -124,6 +130,7 @@ export class BoostController {
 
   @Post('active')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async createActiveBoost(
     @Body() createActiveBoostDto: CreateActiveBoostDto,
     @Req() req: Request,
@@ -139,6 +146,7 @@ export class BoostController {
 
   @Get('subscriptions')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user subscriptions' })
   @ApiResponse({ status: 200, description: 'Returns user subscriptions' })
   async getUserSubscriptions(@Req() req: Request) {
@@ -147,6 +155,7 @@ export class BoostController {
 
   @Get('subscriptions/active')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get active subscription' })
   @ApiResponse({ status: 200, description: 'Returns active subscription' })
   async getActiveSubscription(@Req() req: Request) {
@@ -155,6 +164,7 @@ export class BoostController {
 
   @Post('give/:id')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @Roles(RoleEnum.ADMIN)
   async giveBoosts(@Param() params: CommonParams, @Body() body: GiveBoostsDto) {
     return this.boostService.giveBoosts(params.id, body);
@@ -162,6 +172,7 @@ export class BoostController {
 
   @Get('subscriptions/all')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @Roles(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'Get all subscriptions (Admin only)' })
   @ApiResponse({ status: 200, description: 'Returns all subscriptions' })
@@ -171,6 +182,7 @@ export class BoostController {
 
   @Get('transactions/all')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @Roles(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'Get all transactions (Admin only)' })
   @ApiResponse({ status: 200, description: 'Returns all transactions' })
@@ -180,6 +192,7 @@ export class BoostController {
 
   @Get('transactions/stats')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @Roles(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'Get transaction statistics (Admin only)' })
   @ApiResponse({ status: 200, description: 'Returns transaction stats' })

@@ -69,7 +69,7 @@ export class BoostService {
 
   async createActiveBoost(userId: string, input: CreateActiveBoostDto) {
     const boost = await this.boostModel.findOne({
-      user: new Types.ObjectId(userId),
+      user: userId,
     });
     if (!boost) {
       throw new BadRequestException('User does not have any boosts');
@@ -80,7 +80,7 @@ export class BoostService {
     }
 
     await this.activeBoostModel.create({
-      user: new Types.ObjectId(userId),
+      user: userId,
       type: input.type,
       count: input.count,
       startDate: new Date(),
@@ -106,7 +106,8 @@ export class BoostService {
     );
   }
 
-  @Cron('0 0 1 * *')
+  @Cron('0 0 1 * *') // when will next run date
+  // next run date is 1st of every month at midnight
   async addMonthlyBoostsForSubscribers() {
     try {
       this.logger.log('Starting monthly boost addition for subscribed users');
@@ -215,12 +216,12 @@ export class BoostService {
   }
 
   async getUserBoosts(userId: string) {
-    return this.boostModel.find({ user: new Types.ObjectId(userId) });
+    return this.boostModel.find({ user: userId });
   }
 
   async useBoost(userId: string, type: string, count: number) {
     return this.boostModel.updateOne(
-      { user: new Types.ObjectId(userId) },
+      { user: userId },
       { $inc: { boosts: { [type]: -count } } },
     );
   }
@@ -231,7 +232,7 @@ export class BoostService {
 
     return this.activeBoostModel
       .findOne({
-        user: new Types.ObjectId(userId),
+        user: userId,
         startDate: { $gte: twoHoursAgo },
         type: type,
         count: { $gt: 0 },
@@ -244,11 +245,11 @@ export class BoostService {
   async assignReferralBoost(userId: string, referralUserId?: string) {
     if (referralUserId) {
       const referralUserBoosts = await this.boostModel.findOne({
-        user: new Types.ObjectId(referralUserId),
+        user: referralUserId,
       });
       if (!referralUserBoosts) {
         await this.boostModel.create({
-          user: new Types.ObjectId(referralUserId),
+          user: referralUserId,
           boosts: { users: 35 },
         });
       } else {
@@ -258,11 +259,11 @@ export class BoostService {
     }
 
     const userBoosts = await this.boostModel.findOne({
-      user: new Types.ObjectId(userId),
+      user: userId,
     });
     if (!userBoosts) {
       await this.boostModel.create({
-        user: new Types.ObjectId(userId),
+        user: userId,
         boosts: { users: 35 },
       });
     } else {
@@ -318,11 +319,11 @@ export class BoostService {
     }
 
     const boosts = await this.boostModel.findOne({
-      user: new Types.ObjectId(userId),
+      user: userId,
     });
     if (!boosts) {
       await this.boostModel.create({
-        user: new Types.ObjectId(userId),
+        user: userId,
         boosts: { [type]: countNumber },
       });
     } else {
@@ -351,7 +352,7 @@ export class BoostService {
   ): Promise<SubscriptionDocument | null> {
     return this.subscriptionModel
       .findOne({
-        user: new Types.ObjectId(userId),
+        user: userId,
         status: SubscriptionStatus.ACTIVE,
       })
       .sort({ createdAt: -1 });
@@ -359,12 +360,12 @@ export class BoostService {
 
   async grantBoosts(userId: string, type: BoostType, count: number) {
     const boosts = await this.boostModel.findOne({
-      user: new Types.ObjectId(userId),
+      user: userId,
     });
 
     if (!boosts) {
       await this.boostModel.create({
-        user: new Types.ObjectId(userId),
+        user: userId,
         boosts: { [type]: count },
       });
     } else {
@@ -385,7 +386,7 @@ export class BoostService {
     const count = body.amount;
 
     const boosts = await this.boostModel.findOne({
-      user: new Types.ObjectId(userId),
+      user: userId,
     });
     if (!boosts) {
       const boosts = {
@@ -414,7 +415,7 @@ export class BoostService {
         loc: body.type ? (body.type === BoostType.LOC ? count : 0) : count / 7,
       };
       await this.boostModel.create({
-        user: new Types.ObjectId(userId),
+        user: userId,
         boosts: boosts,
       });
       return;
