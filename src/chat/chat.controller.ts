@@ -24,6 +24,7 @@ import { IsArray, IsString, ArrayMinSize, IsEnum } from 'class-validator';
 import { ChatRoomType } from './chat.types';
 import { CreateColabInput, UpdateColabInput } from './dtos/colab.dto';
 import { CommonParams } from 'src/common/dtos/common.dtos';
+import { SendMessageDto } from './dtos/send-message.dto';
 
 class CreateChatRoomDto {
   @IsArray()
@@ -125,6 +126,24 @@ export class ChatController {
     return this.chatService.createChatRoom(
       createChatRoomDto.userIds,
       createChatRoomDto.type,
+    );
+  }
+
+  @Post('send-message')
+  @ApiOperation({ summary: 'Send a message to a user' })
+  @ApiResponse({
+    status: 201,
+    description: 'Message sent successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async sendMessage(
+    @Body() sendMessageDto: SendMessageDto,
+    @Req() req: Request,
+  ) {
+    return this.chatService.sendMessageToUser(
+      req.user._id,
+      sendMessageDto.recipientId,
+      sendMessageDto.content,
     );
   }
 

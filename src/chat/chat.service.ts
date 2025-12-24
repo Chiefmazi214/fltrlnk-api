@@ -254,4 +254,46 @@ export class ChatService {
 
     return colab;
   }
+
+  async sendMessageToUser(
+    senderId: string,
+    recipientId: string,
+    content: string,
+  ) {
+    // 1. Find existing chat room
+    let chatRoom = await this.findChatRoomByUsers(
+      [senderId, recipientId],
+      ChatRoomType.PRIMARY,
+    );
+
+    if (!chatRoom) {
+      chatRoom = await this.findChatRoomByUsers(
+        [senderId, recipientId],
+        ChatRoomType.GENERAL,
+      );
+    }
+
+    // 2. If not found, create one
+    if (!chatRoom) {
+      chatRoom = await this.createChatRoom(
+        [senderId, recipientId],
+        ChatRoomType.PRIMARY,
+      );
+    }
+
+    // 3. Create message
+    const message = await this.createMessage(senderId, {
+      chatRoomId: chatRoom._id.toString(),
+      content,
+    });
+
+    // 4. Emit socket event
+    if (this.chatGateway) {
+      this.chatGateway.server
+        .to(chatRoom._id.toString())
+        .emit('newMessage', message);
+    }
+
+    return message;
+  }
 }
